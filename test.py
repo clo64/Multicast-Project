@@ -8,7 +8,9 @@ ceteralTable = []
 #Create array to store names of all routing tables
 contents = []
 #Open folder containing all routing tables
-routingTablePath = 'C:\\Users\\game1\\OneDrive\\Rutgers\\Com Net 2\\Final Project\\'
+dir = os.path.dirname(__file__)
+#print("Relative directory is {}".format(dir))
+routingTablePath = '{}\\routingTables\\'.format(dir)
 json_pattern = os.path.join(routingTablePath, '*.json')
 file_list = glob.glob(json_pattern)
 for file in file_list:
