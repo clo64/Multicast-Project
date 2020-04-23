@@ -34,11 +34,25 @@ def receive_packet(my_addr, port_num):
         break
     return data
 
-def read_header(pkt):
+def read_hello(pkt):
 	#Change the bytes to account for network encapsulations
-    header = pkt[0:32]
+    header = pkt[0:36]
     #pktFormat = "BLBBL"
     #pktSize = struct.calcsize(pktFormat)
-    pkttype, pktlen, dst, src, seq = struct.unpack("BLBBL", header)
-    return pkttype, pktlen, dst, src, seq
+    pkttype, seq, src = struct.unpack("BBB", header)
+    return pkttype, seq, src
+
+def sendHelloACK(dst):
+    helloACKType = 0x04
+    helloACKDST = dst
+    helloACK = struct.pack('BB', helloACKType, helloACKDST)
+
+    time.sleep(2)
+    my_socket = socket(AF_INET, SOCK_DGRAM)
+    my_socket.sendto(helloACK, (idMap.code_to_IP(dst), 8888))
+    my_socket.close()
+    print("Sent Hello ACK: ", idMap.code_to_IP(dst))
+    return 0
+
+
     

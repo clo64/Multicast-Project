@@ -3,6 +3,7 @@ sys.path.append('../')
 import idMap
 import hostFunctions
 import time
+import struct
 
 if __name__ == "__main__":
     #read the hosts's ID from the command line input -id
@@ -12,14 +13,19 @@ if __name__ == "__main__":
     routerID = hostFunctions.getRouterID(sys.argv)
     routerID = int(routerID)
     
-    #need function here to setup particular host as the
+    #Maybe, need function here to setup particular host as the
     #broadcast node or not
 
     #blocking call function that will send hello packet
     #until ack received
-    hello = b'Hello'
-    hostFunctions.sendHelloPacket(idMap.code_to_IP(myID), hello, idMap.code_to_IP(routerID))
+    pkttype = 0x01
+    src = myID
+    seq = 0x01
+    hello = struct.pack('BBB', pkttype, seq, src)
+    #hello = hostFunctions.createHelloPacket()
+    data, addr = hostFunctions.sendHelloPacket(idMap.code_to_IP(myID), hello, idMap.code_to_IP(routerID))
 
-    #while True:
+    while True:
         
-        #hostFunctions.receive_packet('0.0.0.0', 8888)
+        data = hostFunctions.receive_packet('0.0.0.0', 8888)
+
