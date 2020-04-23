@@ -6,10 +6,10 @@ from mininet.link import Link, TCLink, TCIntf
 
 net = Mininet()
 
-r1 = net.addHost( 'r1' , ip='192.168.1.1/24')
+r1 = net.addHost( 'r1' )
+h1 = net.addHost( 'h1' )
 
 net.build()
 
 setLogLevel( 'info' )
 CLI(net)
-net.stop()
