@@ -1,3 +1,6 @@
+import sys
+sys.path.append('../')
+import idMap
 import time
 from socket import socket, AF_INET, SOCK_DGRAM
 import struct
@@ -30,4 +33,12 @@ def receive_packet(my_addr, port_num):
         #print("Received packet", data, "from source", addr)
         break
     return data
+
+def read_header(pkt):
+	#Change the bytes to account for network encapsulations
+    header = pkt[0:32]
+    #pktFormat = "BLBBL"
+    #pktSize = struct.calcsize(pktFormat)
+    pkttype, pktlen, dst, src, seq = struct.unpack("BLBBL", header)
+    return pkttype, pktlen, dst, src, seq
     

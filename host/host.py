@@ -1,5 +1,7 @@
-import hostFunctions
 import sys
+sys.path.append('../')
+import idMap
+import hostFunctions
 import time
 
 if __name__ == "__main__":
@@ -10,9 +12,10 @@ if __name__ == "__main__":
     #to be a broadcaster or not
 
     #Wait, then send your hello packet
+    
     time.sleep(5)
     #Make hello packet here then it'll send
-    hostFunctions.sendHelloPacket()
+    #hostFunctions.sendHelloPacket()
 
-    while True:
-        hostFunctions.receive_packet('0.0.0.0', 8888)
+    #while True:
+        #hostFunctions.receive_packet('0.0.0.0', 8888)

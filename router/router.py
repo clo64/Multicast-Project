@@ -12,4 +12,9 @@ if __name__ == "__main__":
 
     while True:
         #listen on all ports logic here
-        recPkt = routerFunctions.receive_packet('0.0.0.0', 8888)
+        receivedPkt = routerFunctions.receive_packet('0.0.0.0', 8888)
+
+        #decode
+        pkttype, pktlen, dst, src, seq = routerFunctions.read_header(receivedPkt)
+
+        print()
