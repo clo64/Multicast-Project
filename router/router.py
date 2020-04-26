@@ -3,6 +3,8 @@ import time
 import threading
 import sys
 import struct
+import json
+import os
 
 if __name__ == "__main__":
     
@@ -15,15 +17,19 @@ if __name__ == "__main__":
     while True:
         #listen on all ports logic here
         receivedPkt = routerFunctions.receive_packet('0.0.0.0', 8888)
+        packetType = routerFunctions.decodePktType(receivedPkt)
         
-        #Size 36 bytes, received a hello packet
-        #Respond with an ACK
-        if(sys.getsizeof(receivedPkt) == 36):
+        #if packet type 1, Hello, respond with Hello ACK
+        if(packetType[0] == 1):
             helloType, helloSeq, helloSrc = routerFunctions.read_hello(receivedPkt)
-            #Call a function to DO something with the SRC you got.
-            #Send an ACK here.. ??
-            routerFunctions.sendHelloACK(helloSrc)
-            
 
-        #decode
-        #pkttype, pktlen, dst, src, seq = routerFunctions.read_header(receivedPkt)
+            #Call a function to DO something with the SRC you got.
+            routerFunctions.sendHelloACK(helloSrc)
+
+            #Now we want to include the host in our routing table..
+            routerFunctions.writeHostJsonFile(helloSrc, myID)
+
+        #if packet type 2, link state packet, how do we respond??
+
+        #if packet type 3, data, how to we respond?
+            

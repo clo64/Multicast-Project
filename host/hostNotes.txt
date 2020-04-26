@@ -3,4 +3,9 @@ print(f"Arguments count: {len(sys.argv)}")
     for i, arg in enumerate(sys.argv):
         print(f"Argument {i:>6}: {arg}")
 
+Host accepts two command line arguments for now
+-id is the router's own id, and -rid is the id of the router its attached to
+    pypthon3 host.py -id 100 -rid 200
+
+
 

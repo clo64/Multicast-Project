@@ -8,6 +8,8 @@ import select
 import random
 import asyncore
 import threading
+import json
+import os
 
 #Get ID from the command line
 #No error checking, so don't screw it up. 
@@ -51,8 +53,21 @@ def sendHelloACK(dst):
     my_socket = socket(AF_INET, SOCK_DGRAM)
     my_socket.sendto(helloACK, (idMap.code_to_IP(dst), 8888))
     my_socket.close()
-    print("Sent Hello ACK: ", idMap.code_to_IP(dst))
+    print("Sent Hello ACK: " + idMap.code_to_IP(dst))
     return 0
 
+def decodePktType(pkt):
+    pktType = pkt[0:1]
+    pkttype = struct.unpack('B', pktType)
+    return pkttype 
+
+def writeHostJsonFile(helloSrc, myID):
+    localHost = {
+                'name': helloSrc,
+                'path': helloSrc,
+                'cost': 1
+            }
+    with open(myID + '.json', 'w') as f:
+        json.dump(localHost, f)
 
     
