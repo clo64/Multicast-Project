@@ -30,7 +30,8 @@ if __name__ == "__main__":
             #Call a function to DO something with the SRC you got.
             routerFunctions.sendHelloACK(helloSrc)
 
-            #Now we want to include the host in our routing table..
+            #!! This should be an append situation, not a completely new file
+            #This is an artifact from testing, should be replaced with an append
             routerFunctions.writeHostJsonFile(helloSrc, myID)
 
         #if packet type 2, link state packet, how do we respond??
