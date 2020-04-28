@@ -19,7 +19,7 @@ def getID(argv):
     """Returns the first command line argument after the -id flag
 
     Arguments:
-        argv {string} -- command line vector
+        argv {vector of strings} -- command line vector
 
     Returns:
         argv[i+1]  -- The next command line item after -id, device ID
@@ -95,7 +95,7 @@ def receive_packet(my_addr, port_num):
         break
 
     return data
-
+"""
 def read_hello(pkt):
 	#Change the bytes to account for network encapsulations
     header = pkt[0:36]
@@ -104,6 +104,7 @@ def read_hello(pkt):
     pkttype, seq, src = struct.unpack("BBB", header)
 
     return pkttype, seq, src
+    """
 
 def sendHelloACK(dst):
     """Send an acknowledgement packet to joining host device.
@@ -128,7 +129,7 @@ def sendHelloACK(dst):
 
 def decodePktType(pkt):
     """Reads the first byte of any incoming packet and returns
-    its value.
+    its value. Device should determine outcome from there.
 
     Arguments:
         pkt {packed struct} -- pkt is the raw packed struct received via UDP
@@ -142,13 +143,21 @@ def decodePktType(pkt):
     return pkttype 
 
 def decodeLinkStatePkt(pkt):
+    """Decodes Link State Packet as byte, int, int, byte and 
+    assumes that data has been concatenaged to the end of the 
+    incoming packet
 
-    pktHeader = pkt[:4]
+    Arguments:
+        pkt {packed struct} -- Data that needs to be unpacked
 
-    print(len(pktHeader))
+    Returns:
+        seq, length, src, data -- Returns all unpacked data except pktType
+    """
 
-    pktType, seq, length, src = struct.unpack('BBBB', pktHeader)
-    data = pkt[4:]
+    pktHeader = pkt[:13]
+
+    pktType, seq, length, src = struct.unpack('BiiB', pktHeader)
+    data = pkt[13:]
 
     return seq, length, src, data
 
@@ -186,11 +195,20 @@ def createLinkStatePacket(SEQCOUNT, routeTable, myID):
 
     data = json.dumps(routeTable)
     data = bytes(data).encode('utf-8')
-    pkt = struct.pack('BBBB', pktType, SEQCOUNT, len(data), src)+data
+    pkt = struct.pack('BiiB', pktType, SEQCOUNT, len(data), src)+data
 
     return pkt
 
 def checkForRoutingTable(myID):
+    """On device startup, if no routing table exists, this funciton
+    creates one that contains only the device itself.
+
+    Arguments:
+        myID {int} -- Devices ID
+
+    Returns:
+        Boolean int -- 1 if creating file successful, 0 if not
+    """
     try:
         with open(myID + '.json') as f:
             routeTable = json.load(f)

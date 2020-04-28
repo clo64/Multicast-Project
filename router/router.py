@@ -38,9 +38,8 @@ if __name__ == "__main__":
         if(packetType[0] == 2):
             print("got a link state packet")
             seq, length, src, data = routerFunctions.decodeLinkStatePkt(receivedPkt)
-            print(seq)
-            print(src)
-            print(data)
+            linkStateData = json.loads(data)
+            print(linkStateData['destination'])
              #decodeLinkState(receivedPkt)
         #if packet type 3, data, how to we respond?
             
