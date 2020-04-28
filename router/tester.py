@@ -1,6 +1,7 @@
 import subprocess
 import re
 import routerFunctions
+from struct import *
 
 """
 spans = []
@@ -20,4 +21,4 @@ print(spans)
 #for ip in spans:
     #ipAddresses.update({output[ip]})
 """
-print(routerFunctions.getIpFromRoute())
+print(calcsize('hhl'))

@@ -1,1 +1,0 @@
-linkStateCounter = 0

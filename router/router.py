@@ -37,6 +37,10 @@ if __name__ == "__main__":
         #if packet type 2, link state packet, how do we respond??
         if(packetType[0] == 2):
             print("got a link state packet")
+            seq, length, src, data = routerFunctions.decodeLinkStatePkt(receivedPkt)
+            print(seq)
+            print(src)
+            print(data)
              #decodeLinkState(receivedPkt)
         #if packet type 3, data, how to we respond?
             
