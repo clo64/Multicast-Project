@@ -1,0 +1,7 @@
+To issue an ID to router use the flag -id XXX where XXX is the ID of the
+device
+
+On start-up router initializes a timed thread that executes every
+10 seconds to distribute its link state information. Just need to 
+give it the actual link state logic now
+
