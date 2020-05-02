@@ -11,7 +11,6 @@ from socket import *
 if __name__ == "__main__":
 
     #read the router's ID from the command line input -id
-    #myID = routerFunctions.getID(sys.argv)
     myID = int(commonFunctions.getIP())
     print("My ID is : {}".format(myID))
 

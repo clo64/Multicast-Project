@@ -11,17 +11,6 @@ import asyncore
 import threading
 import subprocess
 
-#Get ID from the command line
-def getID(argv):
-    for i, arg in enumerate(argv):
-        if(arg=="-id"):
-            return argv[i+1]
-
-def getRouterID(argv):
-    for i, arg in enumerate(argv):
-        if(arg=="-rid"):
-            return argv[i+1]
-
 def createHelloPacket(pkttype, seq, src):
     """Create a new packet based on given id"""
     # Type(1), SEQ(4), SRCID(1) 
@@ -61,9 +50,9 @@ def sendHelloPacket(my_addr, pkt, dst):
     return data, addr
 
 def send_packet(pkt, dst_addr):
-    # """
-    # Sends a packet to the dest_addr using the UDP socket
-    # """
+    """
+    Sends a packet to the dest_addr using the UDP socket
+    """
     my_socket = socket(AF_INET, SOCK_DGRAM)
     my_socket.sendto(pkt, (dst_addr, 8888))
     my_socket.close()
@@ -71,9 +60,9 @@ def send_packet(pkt, dst_addr):
     return 0
 
 def receive_packet(my_addr, port_num):
-    # """
-    # Listens at an IP:port
-    # """
+    """
+    Listens at an IP:port
+    """
     my_socket = socket(AF_INET, SOCK_DGRAM)
     my_socket.bind((my_addr, port_num))
     while True:
