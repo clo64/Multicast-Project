@@ -130,12 +130,12 @@ def run():
     info( "\n\n" )
     info( "*** List host IPs\n" )
     get_host_ips(net)
-    info( "*** List all routes\n" )
-    for node in net.hosts:
-	print(node.cmd('route -n'))
+    #info( "*** List all routes\n" )
+    #for node in net.hosts:
+	#print(node.cmd('route -n'))
     info( "*** Dumping host connections\n" )
     dumpNodeConnections(net.hosts)
-    info( "*** Pinging all devices\n" )
+    #info( "*** Pinging all devices\n" )
     #net.pingAll()
     
     CLI( net )

@@ -1,6 +1,7 @@
 import sys
 sys.path.append('../')
 import idMap
+import commonFunctions
 import time
 from socket import *
 import struct
@@ -14,7 +15,7 @@ import subprocess
 import re
 
 SEQCOUNT = 1
- 
+
 def getID(argv):
     """Returns the first command line argument after the -id flag
 
@@ -65,7 +66,7 @@ def sendLinkState(myID):
     length = len(ipAddresses)
 
     try:
-        with open(myID + '.json') as f:
+        with open(str(myID) + '.json') as f:
             routeTable = json.load(f)
             # print(routeTable)
 
@@ -95,7 +96,7 @@ def receive_packet(my_addr, port_num):
         break
 
     return data
-"""
+
 def read_hello(pkt):
 	#Change the bytes to account for network encapsulations
     header = pkt[0:36]
@@ -104,7 +105,7 @@ def read_hello(pkt):
     pkttype, seq, src = struct.unpack("BBB", header)
 
     return pkttype, seq, src
-    """
+
 
 def sendHelloACK(dst):
     """Send an acknowledgement packet to joining host device.
@@ -121,9 +122,12 @@ def sendHelloACK(dst):
 
     time.sleep(2)
     my_socket = socket(AF_INET, SOCK_DGRAM)
-    my_socket.sendto(helloACK, (idMap.code_to_IP(dst), 8888))
+    #my_socket.sendto(helloACK, (idMap.code_to_IP(dst), 8888))
+    my_socket.sendto(helloACK, (commonFunctions.convertID(dst), 8888))
     my_socket.close()
-    print("Sent Hello ACK: " + idMap.code_to_IP(dst))
+    #print("Sent Hello ACK: " + idMap.code_to_IP(dst))
+    print("Sent Hello ACK: " + commonFunctions.convertID(dst))
+
 
     return 0
 
@@ -173,7 +177,7 @@ def writeHostJsonFile(helloSrc, myID):
                 'cost': 1
             } ] }
 
-    with open(myID + '.json', 'w') as f:
+    with open(str(myID) + '.json', 'w') as f:
         json.dump(localHost, f)
 
 def createLinkStatePacket(SEQCOUNT, routeTable, myID):
@@ -209,13 +213,21 @@ def checkForRoutingTable(myID):
     Returns:
         Boolean int -- 1 if creating file successful, 0 if not
     """
+    """
     try:
-        with open(myID + '.json') as f:
+        with open(str(myID) + ".json", 'r') as f:
             routeTable = json.load(f)
-            # print(routeTable)
+            print(routeTable)
         return 1
-
     except:
+        return 0
+    """
+    try:
+        open(str(myID) + ".json", 'r')
+        print("Initial Table Found")
+        return 1
+    except IOError:
+        print("Did not find inital table")
         return 0
 
 def createFirstRoutingTable(myID):
@@ -225,7 +237,7 @@ def createFirstRoutingTable(myID):
                 'cost': 1
             } ] }
 
-    with open(myID + '.json', 'w') as f:
+    with open(str(myID) + '.json', 'w') as f:
         json.dump(localHost, f)
 
     
