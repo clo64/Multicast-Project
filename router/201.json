@@ -1,1 +1,16 @@
-{"destination": [{"path": 101, "cost": 1, "name": 101}]}
+{
+   "destination": {
+      "201": {
+         "path": [
+            201
+         ], 
+         "cost": 1
+      }, 
+      "101": {
+         "path": [
+            101
+         ], 
+         "cost": 1
+      }
+   }
+}

@@ -13,11 +13,13 @@ import json
 import os
 import subprocess
 import re
+from collections import defaultdict
 
 SEQCOUNT = 1
 
 def getID(argv):
-    """Returns the first command line argument after the -id flag
+    """
+    Returns the first command line argument after the -id flag
 
     Arguments:
         argv {vector of strings} -- command line vector
@@ -30,7 +32,8 @@ def getID(argv):
             return argv[i+1]
 
 def getIpFromRoute():
-    """Issues route -n to the linux CLI for particular device. 
+    """
+    Issues route -n to the linux CLI for particular device. 
     Stores the results into the ipPattern variable, and parses 
     using regular expressions. Parsed IP addresses represent adjacent
     devices.
@@ -50,7 +53,8 @@ def getIpFromRoute():
 
 #logic for sending Link State packets here
 def sendLinkState(myID):
-    """Background process to send link state packets to adjacent devices
+    """
+    Background process to send link state packets to adjacent devices
     every ten seconds. Each timed call to function gets current adjacent IPs,
     opens, stores and creates link state packet from devices routing table JSON file, 
     and iterates through adjacent IPs to send link state packet.
@@ -108,7 +112,8 @@ def read_hello(pkt):
 
 
 def sendHelloACK(dst):
-    """Send an acknowledgement packet to joining host device.
+    """
+    Send an acknowledgement packet to joining host device.
 
     Arguments:
         dst {int} -- Integer representing the host device requesting to joing network.
@@ -122,17 +127,16 @@ def sendHelloACK(dst):
 
     time.sleep(2)
     my_socket = socket(AF_INET, SOCK_DGRAM)
-    #my_socket.sendto(helloACK, (idMap.code_to_IP(dst), 8888))
     my_socket.sendto(helloACK, (commonFunctions.convertID(dst), 8888))
     my_socket.close()
-    #print("Sent Hello ACK: " + idMap.code_to_IP(dst))
     print("Sent Hello ACK: " + commonFunctions.convertID(dst))
 
 
     return 0
 
 def decodePktType(pkt):
-    """Reads the first byte of any incoming packet and returns
+    """
+    Reads the first byte of any incoming packet and returns
     its value. Device should determine outcome from there.
 
     Arguments:
@@ -147,7 +151,8 @@ def decodePktType(pkt):
     return pkttype 
 
 def decodeLinkStatePkt(pkt):
-    """Decodes Link State Packet as byte, int, int, byte and 
+    """
+    Decodes Link State Packet as byte, int, int, byte and 
     assumes that data has been concatenaged to the end of the 
     incoming packet
 
@@ -171,17 +176,26 @@ def writeHostJsonFile(helloSrc, myID):
     to routing table, rather than create a table.
     Latest version of router creates table on startup
     """
-    localHost = {"destination": [ {
-                'name': helloSrc,
-                'path': helloSrc,
-                'cost': 1
-            } ] }
+    fromHello = {str(helloSrc): {
+                    "path": [ helloSrc ],
+                    "cost": 1
+                } }
+
+    #print(json.dumps(fromHello))
+
+    with open(str(myID) + '.json', 'r') as f:
+        routingTable = json.load(f)
+        temp = routingTable['destination']
+        #print(temp)
 
     with open(str(myID) + '.json', 'w') as f:
-        json.dump(localHost, f)
+        temp.update(fromHello)
+        #print(routingTable)
+        json.dump(routingTable, f, indent=3)
 
 def createLinkStatePacket(SEQCOUNT, routeTable, myID):
-    """Composes link state packet by reading json routing table
+    """
+    Composes link state packet by reading json routing table
     and packing struct. Note that the data is not "packed" into 
     the struct, but rather appended to the end of it.
 
@@ -204,7 +218,8 @@ def createLinkStatePacket(SEQCOUNT, routeTable, myID):
     return pkt
 
 def checkForRoutingTable(myID):
-    """On device startup, if no routing table exists, this funciton
+    """
+    On device startup, if no routing table exists, this funciton
     creates one that contains only the device itself.
 
     Arguments:
@@ -212,15 +227,6 @@ def checkForRoutingTable(myID):
 
     Returns:
         Boolean int -- 1 if creating file successful, 0 if not
-    """
-    """
-    try:
-        with open(str(myID) + ".json", 'r') as f:
-            routeTable = json.load(f)
-            print(routeTable)
-        return 1
-    except:
-        return 0
     """
     try:
         open(str(myID) + ".json", 'r')
@@ -231,13 +237,12 @@ def checkForRoutingTable(myID):
         return 0
 
 def createFirstRoutingTable(myID):
-    localHost = {"destination": [ {
-                'name': myID,
-                'path': myID,
-                'cost': 1
-            } ] }
+    
+    localHost = {"destination": {
+                    str(myID): {
+                        "path": [ myID ],
+                        "cost": 1
+                } } }
 
     with open(str(myID) + '.json', 'w') as f:
         json.dump(localHost, f)
-
-    

@@ -10,7 +10,6 @@ import os
 if __name__ == "__main__":
 
     #read the router's ID from the command line input -id
-    #myID = routerFunctions.getID(sys.argv)
     myID = int(commonFunctions.getIP())
     print("My ID is : {}".format(myID))
     #if device has no routing table, a file and template will be created
