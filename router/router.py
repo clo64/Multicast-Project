@@ -6,6 +6,7 @@ import sys
 import struct
 import json
 import os
+from socket import *
 
 if __name__ == "__main__":
 
@@ -34,14 +35,14 @@ if __name__ == "__main__":
     ipAddresses = routerFunctions.getIpFromRoute()
     localStoreIPAddresses = ipAddresses
     
+    """
+    Router "Hello" logic. The router
+    """
     while(helloACKCounter != length):
-        print("Hello ACK Counter")
-        print(helloACKCounter)
         routerHelloThread = threading.Thread(target = routerFunctions.sendRouterHello, args=(myID, routerHelloPacket, ipAddresses))
         routerHelloThread.start()
-        temp, nodeGraph, ipOfACK =  routerFunctions.receiveRouterHello(myID, nodeGraph)
+        temp, nodeGraph, ipOfACK = routerFunctions.receiveRouterHello(myID, nodeGraph)
         if(ipOfACK is not None):
-            print(ipOfACK)
             try:
                 localStoreIPAddresses.remove(ipOfACK)
             except:
@@ -81,6 +82,11 @@ if __name__ == "__main__":
              #decodeLinkState(receivedPkt)
         #if packet type 3, data, how to we respond?
 
-        #respond to router hello..
-        if(packetType[0] == 4):
-            print("got a router hello ACK")
+        #In the event a router hello packet previously missed
+        if(packetType[0] == 5):
+            helloACKpkt = struct.pack('BBB', 0x04, 0x01, myID)
+            pkttype, seq, srcVal = struct.unpack('BBB', receivedPkt)
+            my_socket = socket(AF_INET, SOCK_DGRAM)
+            my_socket.sendto(helloACKpkt, (commonFunctions.convertID(srcVal), 8888))
+            my_socket.close()
+            print("Got a hello message!")

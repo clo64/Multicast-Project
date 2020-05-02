@@ -114,15 +114,17 @@ def sendRouterHello(myID, routerHelloPacket, ipAddresses):
 def receiveRouterHello(myID, nodeGraph):
     helloACKpkt = struct.pack('BBB', 0x04, 0x01, myID)
     nodeGraphArray = nodeGraph[str(myID)]
-    print(nodeGraphArray)
+
     my_socket = socket(AF_INET, SOCK_DGRAM)   
     my_socket.settimeout(4)
     my_socket.bind((commonFunctions.convertID(myID), 8888))
     #Hello ACK type set as 4, listening to hear this value
+
     try:
         print("Listening for Hello ACK")
         data, addr = my_socket.recvfrom(1024)
         pktType = decodePktType(data)
+
         if (pktType[0] == 4): #Hello ACK
             pkttype, seq, srcVal = struct.unpack('BBB', data)
             nodeGraphArray.append(srcVal)
@@ -130,6 +132,7 @@ def receiveRouterHello(myID, nodeGraph):
             print("Hello ACK Received")
             ipOfACK = addr[0]
             return 1, nodeGraph, ipOfACK
+            
         elif (pktType[0] == 5): #Received Hello Packet
             pkttype, seq, srcVal = struct.unpack('BBB', data)
             my_socket = socket(AF_INET, SOCK_DGRAM)
