@@ -8,9 +8,7 @@ ceteralTable = []
 #Create array to store names of all routing tables
 contents = []
 #Open folder containing all routing tables
-dir = os.path.dirname(__file__)
-#print("Relative directory is {}".format(dir))
-routingTablePath = '{}\\routingTables\\'.format(dir)
+routingTablePath = 'C:\\Users\\game1\\OneDrive\\Rutgers\\Com Net 2\\Final Project\\'
 json_pattern = os.path.join(routingTablePath, '*.json')
 file_list = glob.glob(json_pattern)
 for file in file_list:
@@ -24,11 +22,16 @@ for file in contents:
     #Pull costs for each destination on a given router
     #Store them in a serpate array so they can be indiviually parsed later
     destCost = []
+
     for dest in data["destination"]:
+        print(dest)
+        print(data["destination"][dest])
+        print(data["destination"][dest]["cost"])
+        destCost.append(data["destination"][dest]["cost"])
         #print(dest["name"])
         #print(dest["path"])
         #print(dest["cost"])
-        destCost.append(dest["cost"])
+        #destCost.append(dest["cost"])
 
     #Get Filename
     #Which is also router ID
@@ -61,3 +64,5 @@ for ii in range(len(ceteralTable)):
     #if ceteralTable[ii]["totCost"] == costRP:
 
 print("The selected RP is : {}".format(selectedRP))
+#Code here to get path to selected RP or call send packet to RP
+#print("The path to {} is {}".format(selectedRP, ))

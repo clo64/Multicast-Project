@@ -1,0 +1,19 @@
+{
+    "destination": [
+        {
+            "name": "D1",
+            "path": ["R2", "R5", "D1"],
+            "cost": 3
+        },
+        {
+            "name": "D2",
+            "path": ["R3", "R6", "D2"],
+            "cost": 3
+        },
+        {
+            "name": "D3",
+            "path": ["R4", "R7", "D3"],
+            "cost": 3
+        }
+    ]
+}
