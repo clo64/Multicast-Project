@@ -3,6 +3,7 @@ import re
 import routerFunctions
 from struct import *
 
+
 """
 spans = []
 ipAddresses = {}
@@ -21,4 +22,12 @@ print(spans)
 #for ip in spans:
     #ipAddresses.update({output[ip]})
 """
-print(calcsize('hhl'))
+myIDstr = str(201)
+nodeGraph = {myIDstr: ['202', '203']}
+print(nodeGraph)
+nodeGraph.update({myIDstr: ['202']})
+print(nodeGraph)
+tempGraphData = nodeGraph[myIDstr]
+print(tempGraphData)
+
+

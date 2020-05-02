@@ -40,7 +40,7 @@ def getIpFromRoute():
     """
     ipAddresses = []
     routeString = subprocess.check_output("route -n", shell=True).decode()
-    ipPattern = re.compile(r'[1][9][2][.]\d\d\d[.]\d[.][0-9][0-9][0-9]')
+    ipPattern = re.compile(r'[1][9][2][.]\d\d\d[.]\d[.][2][0-9][0-9]')
     matches = ipPattern.finditer(routeString)
     for match in matches:
         ipAddresses.append(match.group())
@@ -96,6 +96,52 @@ def receive_packet(my_addr, port_num):
         break
 
     return data
+
+def sendRouterHello(myID, routerHelloPacket, ipAddresses):
+    length = len(ipAddresses)
+    try:
+        for i in range(length):
+
+            my_socket = socket(AF_INET, SOCK_DGRAM)
+            my_socket.sendto(routerHelloPacket, (ipAddresses[i], 8888))
+            my_socket.close()
+            print("Sent router hello to: " + ipAddresses[i])
+
+            time.sleep(1)
+    except:
+        print("Send error, trying again")
+
+def receiveRouterHello(myID, nodeGraph):
+    helloACKpkt = struct.pack('BBB', 0x04, 0x01, myID)
+    nodeGraphArray = nodeGraph[str(myID)]
+    print(nodeGraphArray)
+    my_socket = socket(AF_INET, SOCK_DGRAM)   
+    my_socket.settimeout(4)
+    my_socket.bind((commonFunctions.convertID(myID), 8888))
+    #Hello ACK type set as 4, listening to hear this value
+    try:
+        print("Listening for Hello ACK")
+        data, addr = my_socket.recvfrom(1024)
+        pktType = decodePktType(data)
+        if (pktType[0] == 4): #Hello ACK
+            pkttype, seq, srcVal = struct.unpack('BBB', data)
+            nodeGraphArray.append(srcVal)
+            nodeGraph = {str(myID): nodeGraphArray}
+            print("Hello ACK Received")
+            ipOfACK = addr[0]
+            return 1, nodeGraph, ipOfACK
+        elif (pktType[0] == 5): #Received Hello Packet
+            pkttype, seq, srcVal = struct.unpack('BBB', data)
+            my_socket = socket(AF_INET, SOCK_DGRAM)
+            my_socket.sendto(helloACKpkt, (commonFunctions.convertID(srcVal), 8888))
+            my_socket.close()
+            print("Got a hello message!")
+            return 0, nodeGraph, None
+    except:
+        return 0, nodeGraph, None
+    
+    return 0, nodeGraph, None
+    
 
 def read_hello(pkt):
 	#Change the bytes to account for network encapsulations

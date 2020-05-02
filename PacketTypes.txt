@@ -1,0 +1,6 @@
+Host Hello Packet: 0x01
+Host Hello ACK: 0x04
+Router Hello Packet: 0x05
+Router Hello ACK: 0x06
+Link State Packet: 0x02
+Data Packet: 0x07

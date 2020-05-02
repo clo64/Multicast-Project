@@ -13,11 +13,45 @@ if __name__ == "__main__":
     #myID = routerFunctions.getID(sys.argv)
     myID = int(commonFunctions.getIP())
     print("My ID is : {}".format(myID))
+
+    nodeGraph = {str(myID): []}
+    print(nodeGraph)
+
     #if device has no routing table, a file and template will be created
     if(routerFunctions.checkForRoutingTable(myID) == 0):
         print("Creating Routing Table")
         routerFunctions.createFirstRoutingTable(myID)
 
+    #prepare hello packet
+    pkttype = 0x05
+    src = myID
+    #print("src is : ".format(src))
+    seq = 0x01
+    helloACKCounter = 0
+    length = len(routerFunctions.getIpFromRoute())
+    routerHelloPacket = struct.pack('BBB', pkttype, seq, src)
+
+    ipAddresses = routerFunctions.getIpFromRoute()
+    localStoreIPAddresses = ipAddresses
+    
+    while(helloACKCounter != length):
+        print("Hello ACK Counter")
+        print(helloACKCounter)
+        routerHelloThread = threading.Thread(target = routerFunctions.sendRouterHello, args=(myID, routerHelloPacket, ipAddresses))
+        routerHelloThread.start()
+        temp, nodeGraph, ipOfACK =  routerFunctions.receiveRouterHello(myID, nodeGraph)
+        if(ipOfACK is not None):
+            print(ipOfACK)
+            try:
+                localStoreIPAddresses.remove(ipOfACK)
+            except:
+                print("No such IP")
+        helloACKCounter = helloACKCounter + temp
+        routerHelloThread.join()
+        ipAddresses = localStoreIPAddresses
+        print("Node Graph Updated")
+        print(nodeGraph)
+    
     #initializes Link State transmission to occur every 10 seconds
     routerFunctions.sendLinkState(myID)
 
@@ -46,4 +80,7 @@ if __name__ == "__main__":
             print(linkStateData['destination'])
              #decodeLinkState(receivedPkt)
         #if packet type 3, data, how to we respond?
-            
+
+        #respond to router hello..
+        if(packetType[0] == 4):
+            print("got a router hello ACK")

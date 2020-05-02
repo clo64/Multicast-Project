@@ -30,8 +30,8 @@ def createHelloPacket(pkttype, seq, src):
 
 def sendHelloPacket(my_addr, pkt, dst):
     helloAckFlag = False
-    my_socket = socket(AF_INET, SOCK_DGRAM)    
-    my_socket.settimeout(4)
+    #my_socket = socket(AF_INET, SOCK_DGRAM)    
+    #my_socket.settimeout(4)
     print("Socket Timeout Set")
 
     while (not helloAckFlag):
