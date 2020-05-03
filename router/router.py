@@ -17,6 +17,10 @@ if __name__ == "__main__":
     nodeGraph = {str(myID): []}
     print(nodeGraph)
 
+    #Data structure to keep track of sequence number of received 
+    #link state packets
+    linkStateSeqNumber = {}
+
     #if device has no routing table, a file and template will be created
     if(routerFunctions.checkForRoutingTable(myID) == 0):
         print("Creating Routing Table")
@@ -35,7 +39,9 @@ if __name__ == "__main__":
     localStoreIPAddresses = ipAddresses
     
     """
-    Router "Hello" logic. The router
+    Router "Hello" logic. The router spins a new thread every iteration of the loop. The thread
+    loops through the ipAddresses array and send a router hello packet. If the logic succesfully 
+    receives an ACK, the ip address for that ACK is removed from the ipAddresses array. 
     """
     while(helloACKCounter != length):
         routerHelloThread = threading.Thread(target = routerFunctions.sendRouterHello, args=(myID, routerHelloPacket, ipAddresses))
@@ -53,7 +59,7 @@ if __name__ == "__main__":
         print(nodeGraph)
     
     #initializes Link State transmission to occur every 10 seconds
-    routerFunctions.sendLinkState(myID)
+    routerFunctions.sendLinkState(myID, nodeGraph)
 
     while True:
         #listen on all ports logic here
@@ -70,18 +76,37 @@ if __name__ == "__main__":
 
             #!! This should be an append situation, not a completely new file
             #This is an artifact from testing, should be replaced with an append
-            routerFunctions.writeHostJsonFile(helloSrc, myID)
+            #routerFunctions.writeHostJsonFile(helloSrc, myID)
+            routerFunctions.addHostToGraph(helloSrc, myID, nodeGraph)
+            print("Graph updated with host")
+            print(nodeGraph)
 
         #if packet type 2, link state packet, how do we respond??
         if(packetType[0] == 2):
             print("got a link state packet")
             seq, length, src, data = routerFunctions.decodeLinkStatePkt(receivedPkt)
-            linkStateData = json.loads(data)
-            print(linkStateData['destination'])
-             #decodeLinkState(receivedPkt)
+            """
+            print("Here's the src value")
+            print(src)
+            print("Here the data")
+            print(data)
+            print(linkStateSeqNumber)
+            """
+            ipAddresses = routerFunctions.getIpFromRoute()
+            ipAddresses.remove(commonFunctions.convertID(src))
+            linkStateForwardThread = threading.Thread(target=routerFunctions.forwardLinkState, args=(ipAddresses, receivedPkt))
+            linkStateForwardThread.start()
+            nodeGraph = routerFunctions.updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph)
+            print(nodeGraph)
+            #spin new thread to forward link state on all nodes except the node it
+            #came in on!!
+
+            #inkStateData = json.loads(data)
+            #print(linkStateData['201'])
+            #decodeLinkState(receivedPkt)
         #if packet type 3, data, how to we respond?
 
-        #In the event a router hello packet previously missed
+        #In the event a router hello packet was previously missed
         if(packetType[0] == 5):
             helloACKpkt = struct.pack('BBB', 0x04, 0x01, myID)
             pkttype, seq, srcVal = struct.unpack('BBB', receivedPkt)

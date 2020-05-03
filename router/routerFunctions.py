@@ -52,7 +52,7 @@ def getIpFromRoute():
 
 
 #logic for sending Link State packets here
-def sendLinkState(myID):
+def sendLinkState(myID, nodeGraph):
     """
     Background process to send link state packets to adjacent devices
     every ten seconds. Each timed call to function gets current adjacent IPs,
@@ -68,7 +68,7 @@ def sendLinkState(myID):
 
     ipAddresses = getIpFromRoute()
     length = len(ipAddresses)
-
+    """
     try:
         with open(str(myID) + '.json') as f:
             routeTable = json.load(f)
@@ -77,8 +77,9 @@ def sendLinkState(myID):
     except:
         print("No routing table")
         return
+    """
 
-    linkStatePacket = createLinkStatePacket(SEQCOUNT, routeTable, myID)
+    linkStatePacket = createLinkStatePacket(SEQCOUNT, nodeGraph, myID)
 
     for i in range(length):
         my_socket = socket(AF_INET, SOCK_DGRAM)
@@ -88,7 +89,22 @@ def sendLinkState(myID):
         time.sleep(1)
         #continuously call the function in thread 
     
-    threading.Timer(10, sendLinkState, [myID]).start()
+    threading.Timer(10, sendLinkState, [myID, nodeGraph]).start()
+
+def forwardLinkState(ipAddresses, linkState):
+    #unreliable forward on all ports except the one link state received on
+    length = len(ipAddresses)
+    try:
+        for i in range(length):
+
+            my_socket = socket(AF_INET, SOCK_DGRAM)
+            my_socket.sendto(linkState, (ipAddresses[i], 8888))
+            my_socket.close()
+            print("Forwarded Link State: " + ipAddresses[i])
+
+            time.sleep(1)
+    except:
+        print("Send error, trying again")
 
 def receive_packet(my_addr, port_num):
     my_socket = socket(AF_INET, SOCK_DGRAM)
@@ -219,6 +235,24 @@ def decodeLinkStatePkt(pkt):
 
     return seq, length, src, data
 
+def updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph):
+    #if the sequence number of the received link state packet is > than the old one
+    #update linkStateSeqNumber, and add, or update nodeGraph to reflect new key data
+    #serialize the data into dict first...
+    linkStateData = json.loads(data)
+    if (str(src) in nodeGraph) and (seq > int(linkStateSeqNumber[str(src)])):
+        nodeGraph.update(linkStateData)
+        print("Updated old graph")
+        print(nodeGraph)
+        return nodeGraph
+    else:
+        newKeyPair = {str(src): seq}
+        linkStateSeqNumber.update(newKeyPair)
+        nodeGraph.update(linkStateData)
+        print("Added new entry to graph")
+        print(nodeGraph)
+        return nodeGraph
+
 def writeHostJsonFile(helloSrc, myID):
     """
     Must be fundamentally changed to add data
@@ -242,7 +276,18 @@ def writeHostJsonFile(helloSrc, myID):
         #print(routingTable)
         json.dump(routingTable, f, indent=3)
 
-def createLinkStatePacket(SEQCOUNT, routeTable, myID):
+def addHostToGraph(helloSrc, myID, nodeGraph):
+    #extract array myID's array from nodeGraph
+    connectedDevices = nodeGraph[str(myID)]
+    if str(helloSrc) in connectedDevices:
+        return 0
+    else:
+        connectedDevices.append(helloSrc)
+        graphUpdate = {str(myID):connectedDevices}
+        nodeGraph.update(graphUpdate)
+        return nodeGraph
+
+def createLinkStatePacket(SEQCOUNT, nodeGraph, myID):
     """
     Composes link state packet by reading json routing table
     and packing struct. Note that the data is not "packed" into 
@@ -260,8 +305,11 @@ def createLinkStatePacket(SEQCOUNT, routeTable, myID):
     length = 1
     src = int(myID)
 
-    data = json.dumps(routeTable)
+    #Use dict comprehensions to pull just my link state data by IP
+    linkStateSubset = {str(myID):nodeGraph[str(myID)]}
+    data = json.dumps(linkStateSubset)
     data = bytes(data).encode('utf-8')
+
     pkt = struct.pack('BiiB', pktType, SEQCOUNT, len(data), src)+data
 
     return pkt
