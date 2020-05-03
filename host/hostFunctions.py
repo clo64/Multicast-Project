@@ -1,7 +1,6 @@
 import time
 import sys
 sys.path.append('../')
-import idMap
 import commonFunctions
 from socket import *
 import struct
@@ -12,7 +11,9 @@ import threading
 import subprocess
 
 def createHelloPacket(pkttype, seq, src):
-    """Create a new packet based on given id"""
+    """
+    Create a new packet based on given id
+    """
     # Type(1), SEQ(4), SRCID(1) 
     hello = struct.pack('BBB', pkttype, seq, src)
     return hello

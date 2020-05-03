@@ -1,5 +1,6 @@
 import routerFunctions
 import commonFunctions
+import selectRP
 import time
 import threading
 import sys
@@ -11,11 +12,11 @@ from socket import *
 if __name__ == "__main__":
 
     #read the router's ID from the command line input -id
-    myID = int(commonFunctions.getIP())
+    myID = int(commonFunctions.getID())
     print("My ID is : {}".format(myID))
 
     nodeGraph = {str(myID): []}
-    print(nodeGraph)
+    #print(nodeGraph)
 
     #Data structure to keep track of sequence number of received 
     #link state packets
@@ -25,6 +26,11 @@ if __name__ == "__main__":
     if(routerFunctions.checkForRoutingTable(myID) == 0):
         print("Creating Routing Table")
         routerFunctions.createFirstRoutingTable(myID)
+
+    #TESTING
+    #selectRP.bestkn(2,3,myID)
+    #selectRP.selectRP(3,3,myID,101)
+    #quit()
 
     #prepare hello packet
     pkttype = 0x05

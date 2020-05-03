@@ -1,15 +1,14 @@
 import sys
 sys.path.append('../')
-import idMap
-import hostFunctions
 import commonFunctions
+import hostFunctions
 import time
 import struct
 import os, subprocess
 
 if __name__ == "__main__":
     #read the hosts's ID from the command line input -id
-    myID = int(commonFunctions.getIP())
+    myID = int(commonFunctions.getID())
     
     #Maybe, need function here to setup particular host as the
     #broadcast node or not
