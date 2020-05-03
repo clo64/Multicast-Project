@@ -115,7 +115,7 @@ def receive_packet(my_addr, port_num):
         #print("Received packet", data, "from source", addr)
         break
 
-    return data
+    return data, addr
 
 def sendRouterHello(myID, routerHelloPacket, ipAddresses):
     length = len(ipAddresses)

@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
     while True:
         #listen on all ports logic here
-        receivedPkt = routerFunctions.receive_packet('0.0.0.0', 8888)
+        receivedPkt, addr = routerFunctions.receive_packet('0.0.0.0', 8888)
         packetType = routerFunctions.decodePktType(receivedPkt)
         
         #if packet type 1, Hello, respond with Hello ACK
@@ -92,12 +92,12 @@ if __name__ == "__main__":
             print(data)
             print(linkStateSeqNumber)
             """
-            ipAddresses = routerFunctions.getIpFromRoute()
-            ipAddresses.remove(commonFunctions.convertID(src))
-            linkStateForwardThread = threading.Thread(target=routerFunctions.forwardLinkState, args=(ipAddresses, receivedPkt))
-            linkStateForwardThread.start()
-            nodeGraph = routerFunctions.updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph)
-            print(nodeGraph)
+            if(src != myID):
+                ipAddresses = routerFunctions.getIpFromRoute()
+                ipAddresses.remove(addr[0])
+                linkStateForwardThread = threading.Thread(target=routerFunctions.forwardLinkState, args=(ipAddresses, receivedPkt))
+                linkStateForwardThread.start()
+                nodeGraph = routerFunctions.updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph)
             #spin new thread to forward link state on all nodes except the node it
             #came in on!!
 
