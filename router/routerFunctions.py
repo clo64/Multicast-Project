@@ -1,6 +1,5 @@
 import sys
 sys.path.append('../')
-import idMap
 import commonFunctions
 import time
 from socket import *
@@ -16,20 +15,6 @@ import re
 from collections import defaultdict
 
 SEQCOUNT = 1
-
-def getID(argv):
-    """
-    Returns the first command line argument after the -id flag
-
-    Arguments:
-        argv {vector of strings} -- command line vector
-
-    Returns:
-        argv[i+1]  -- The next command line item after -id, device ID
-    """
-    for i, arg in enumerate(argv):
-        if(arg=="-id"):
-            return argv[i+1]
 
 def getIpFromRoute():
     """
