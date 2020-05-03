@@ -40,7 +40,7 @@ if __name__ == "__main__":
     
     """
     Router "Hello" logic. The router spins a new thread every iteration of the loop. The thread
-    loops through the ipAddresses array and send a router hello packet. If the logic succesfully 
+    loops through the ipAddresses array and sends a router hello packet. If the logic succesfully 
     receives an ACK, the ip address for that ACK is removed from the ipAddresses array. 
     """
     while(helloACKCounter != length):
@@ -93,8 +93,9 @@ if __name__ == "__main__":
             print(linkStateSeqNumber)
             """
             if(src != myID):
-                ipAddresses = routerFunctions.getIpFromRoute()
-                ipAddresses.remove(addr[0])
+                if(src > 150):
+                    ipAddresses = routerFunctions.getIpFromRoute()
+                    ipAddresses.remove(addr[0])
                 linkStateForwardThread = threading.Thread(target=routerFunctions.forwardLinkState, args=(ipAddresses, receivedPkt))
                 linkStateForwardThread.start()
                 nodeGraph = routerFunctions.updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph)

@@ -10,6 +10,8 @@ import random
 import asyncore
 import threading
 import subprocess
+import json
+
 
 def createHelloPacket(pkttype, seq, src):
     """Create a new packet based on given id"""
@@ -17,8 +19,10 @@ def createHelloPacket(pkttype, seq, src):
     hello = struct.pack('BBB', pkttype, seq, src)
     return hello
 
-def sendHelloPacket(my_addr, pkt, dst):
+def sendHelloPacket(my_addr, pkt, dst, myLink, myID):
     helloAckFlag = False
+    #extract the array of connected devices
+    connectedDevice = myLink[str(myID)]
     #my_socket = socket(AF_INET, SOCK_DGRAM)    
     #my_socket.settimeout(4)
     print("Socket Timeout Set")
@@ -44,10 +48,16 @@ def sendHelloPacket(my_addr, pkt, dst):
             if (pktType[0] == 4):
                 print("Hello ACK Received")
                 print("Network joined")
+                #take returned address, turn it into a code, append it to our linkstate
+                #this is a janky solution... but it works in this implimentation, so we leave it
+                rID = addr[0][10:13]
+                connectedDevice.append(rID)
+                graphUpdate = {str(myID): connectedDevice}
+                myLink.update(graphUpdate)
                 helloAckFlag = True
         except:
             continue
-    return data, addr
+    return data, addr, myLink
 
 def send_packet(pkt, dst_addr):
     """
@@ -75,3 +85,24 @@ def decodePktType(pkt):
     pktType = pkt[0:1]
     pkttype = struct.unpack('B', pktType)
     return pkttype 
+
+def broadcastLinkState(myID, broadcastIP, myLink):
+
+    #create the link state packet
+    pktType = 2
+    lengh = 1
+    src = int(myID)
+    data = json.dumps(myLink)
+    data = bytes(data).encode('utf-8')
+
+    pkt = struct.pack('BiiB', pktType, 1, len(data), src)+data
+    try:
+        my_socket = socket(AF_INET, SOCK_DGRAM)
+        my_socket.setsockopt(SOL_SOCKET, SO_BROADCAST, 1) 
+        my_socket.sendto(pkt, ('192.168.1.255', 8888))
+        my_socket.close()
+        time.sleep(1)
+    except:
+        print("Send error, trying again")
+
+    threading.Timer(10, broadcastLinkState, [myID, broadcastIP, myLink]).start()

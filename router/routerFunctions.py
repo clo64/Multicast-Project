@@ -147,7 +147,7 @@ def receiveRouterHello(myID, nodeGraph):
 
         if (pktType[0] == 4): #Hello ACK
             pkttype, seq, srcVal = struct.unpack('BBB', data)
-            nodeGraphArray.append(srcVal)
+            nodeGraphArray.append(str(srcVal))
             nodeGraph = {str(myID): nodeGraphArray}
             print("Hello ACK Received")
             ipOfACK = addr[0]
@@ -238,7 +238,7 @@ def decodeLinkStatePkt(pkt):
 def updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph):
     #if the sequence number of the received link state packet is > than the old one
     #update linkStateSeqNumber, and add, or update nodeGraph to reflect new key data
-    #serialize the data into dict first...
+    #JSON serialize the data into dict first...
     linkStateData = json.loads(data)
     if (str(src) in nodeGraph) and (seq > int(linkStateSeqNumber[str(src)])):
         nodeGraph.update(linkStateData)
@@ -282,7 +282,7 @@ def addHostToGraph(helloSrc, myID, nodeGraph):
     if str(helloSrc) in connectedDevices:
         return 0
     else:
-        connectedDevices.append(helloSrc)
+        connectedDevices.append(str(helloSrc))
         graphUpdate = {str(myID):connectedDevices}
         nodeGraph.update(graphUpdate)
         return nodeGraph

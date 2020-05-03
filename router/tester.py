@@ -2,6 +2,8 @@ import subprocess
 import re
 import routerFunctions
 from struct import *
+import dijkstra
+from graphs import Graph
 
 
 """
@@ -22,12 +24,25 @@ print(spans)
 #for ip in spans:
     #ipAddresses.update({output[ip]})
 """
-myIDstr = str(201)
-nodeGraph = {myIDstr: ['202', '203']}
-print(nodeGraph)
-nodeGraph.update({myIDstr: ['202']})
-print(nodeGraph)
-tempGraphData = nodeGraph[myIDstr]
-print(tempGraphData)
 
+if __name__ == "__main__":
+
+    nodeGraph = {
+            '101': ['201'],
+            '102': ['205'],
+            '103': ['206'],
+            '104': ['207'],
+            '201': ['202', '203', '204', '101'], 
+            '203': ['201', '206'], 
+            '202': ['201', '205'], 
+            '205': ['202', '206', '102'], 
+            '204': ['201', '207'], 
+            '207': ['204', '206', '104'], 
+            '206': ['203', '205', '207', '103']
+    }
+
+    graph = Graph(nodeGraph)
+
+    print("Shortest Path")
+    print(graph.find_path('101', '103'))
 
