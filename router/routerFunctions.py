@@ -15,6 +15,12 @@ import re
 from collections import defaultdict
 
 SEQCOUNT = 1
+#This semaphore is used exclusively for coordinating the link state
+#send functions: sendLinkState and forwardLinkState
+sem = threading.Semaphore()
+#This emaphore used to synchronize receive socket bindings, without it
+#system would crach after minute-ish
+recHelloSynch = threading.Semaphore()
 
 def getIpFromRoute():
     """
@@ -65,7 +71,7 @@ def sendLinkState(myID, nodeGraph):
     """
 
     linkStatePacket = createLinkStatePacket(SEQCOUNT, nodeGraph, myID)
-
+    sem.acquire()
     for i in range(length):
         my_socket = socket(AF_INET, SOCK_DGRAM)
         my_socket.sendto(linkStatePacket, (ipAddresses[i], 8888))
@@ -73,12 +79,13 @@ def sendLinkState(myID, nodeGraph):
         print("Sent packet to the destination: " + ipAddresses[i])
         time.sleep(1)
         #continuously call the function in thread 
-    
+    sem.release()
     threading.Timer(10, sendLinkState, [myID, nodeGraph]).start()
 
 def forwardLinkState(ipAddresses, linkState):
     #unreliable forward on all ports except the one link state received on
     length = len(ipAddresses)
+    sem.acquire()
     try:
         for i in range(length):
 
@@ -88,17 +95,27 @@ def forwardLinkState(ipAddresses, linkState):
             print("Forwarded Link State: " + ipAddresses[i])
 
             time.sleep(1)
+        sem.release()
     except:
         print("Send error, trying again")
+        sem.release()
 
 def receive_packet(my_addr, port_num):
-    my_socket = socket(AF_INET, SOCK_DGRAM)
-    my_socket.bind((my_addr, port_num))
-
+    #causing error is socket is already bound
+    #trying a while True loop to eliminate error
+    recHelloSynch.acquire()
     while True:
-        data, addr = my_socket.recvfrom(1024)
-        #print("Received packet", data, "from source", addr)
-        break
+        try:
+            my_socket = socket(AF_INET, SOCK_DGRAM)
+            my_socket.bind((my_addr, port_num))
+            data, addr = my_socket.recvfrom(1024)
+            #print("Received packet", data, "from source", addr)
+            recHelloSynch.release()
+            break
+        except:
+            print("Port busy, try again")
+            time.sleep(1)
+            continue
 
     return data, addr
 
@@ -120,6 +137,7 @@ def receiveRouterHello(myID, nodeGraph):
     helloACKpkt = struct.pack('BBB', 0x04, 0x01, myID)
     nodeGraphArray = nodeGraph[str(myID)]
 
+    recHelloSynch.acquire()
     my_socket = socket(AF_INET, SOCK_DGRAM)   
     my_socket.settimeout(4)
     my_socket.bind((commonFunctions.convertID(myID), 8888))
@@ -129,6 +147,7 @@ def receiveRouterHello(myID, nodeGraph):
         print("Listening for Hello ACK")
         data, addr = my_socket.recvfrom(1024)
         pktType = decodePktType(data)
+        recHelloSynch.release()
 
         if (pktType[0] == 4): #Hello ACK
             pkttype, seq, srcVal = struct.unpack('BBB', data)
@@ -146,8 +165,10 @@ def receiveRouterHello(myID, nodeGraph):
             print("Got a hello message!")
             return 0, nodeGraph, None
     except:
+        recHelloSynch.release()
         return 0, nodeGraph, None
-    
+
+    recHelloSynch.release()
     return 0, nodeGraph, None
     
 

@@ -9,15 +9,11 @@ import os, subprocess
 if __name__ == "__main__":
 
     #read the hosts's ID from the command line input -id
-<<<<<<< HEAD
-    myID = int(commonFunctions.getIP())
+    myID = int(commonFunctions.getID())
 
     #host maintains and broadcasts it's single link state
     #does not maintain data about the rest of the network
     myLink = {str(myID): []}
-=======
-    myID = int(commonFunctions.getID())
->>>>>>> 72fe361ae8e58fa6c3dfbf55ca3dade3d47a698b
     
     #Maybe, need function here to setup particular host as the
     #broadcast node or not
