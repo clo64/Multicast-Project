@@ -9,15 +9,10 @@ import os, subprocess
 if __name__ == "__main__":
 
     #read the hosts's ID from the command line input -id
-<<<<<<< HEAD
-    myID = int(commonFunctions.getIP())
-
+    myID = int(commonFunctions.getID())
     #host maintains and broadcasts it's single link state
     #does not maintain data about the rest of the network
     myLink = {str(myID): []}
-=======
-    myID = int(commonFunctions.getID())
->>>>>>> 72fe361ae8e58fa6c3dfbf55ca3dade3d47a698b
     
     #Maybe, need function here to setup particular host as the
     #broadcast node or not
@@ -37,4 +32,22 @@ if __name__ == "__main__":
     while True:
         
         data = hostFunctions.receive_packet('0.0.0.0', 8888)
+    #NEED to update function to move on after receiving ACK
 
+    #create data packet
+    pktType = 0x07
+    src = myID
+    seq = 0x01
+    #k out of n destinations 1-3
+    ndest = 3
+    data = "This is a {} out of 3 multicast message".format(ndest)
+    #rdest, dest1-3, will not be set when host sends pkt
+    #Core router will determine those values
+    #At this point the host should know the attached router
+    #Does it make sense to send to that router or still broadcast like hellopkt?
+    rdest = 0
+    dest1 = 0
+    dest2 = 0
+    dest3 = 0
+    datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, rdest, dest1, dest2, dest3, data)
+    #code to send datapkt

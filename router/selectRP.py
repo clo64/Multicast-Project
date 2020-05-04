@@ -122,4 +122,4 @@ def selectRP(k,n,myID,srcID):
         #if ceteralTable[ii]["totCost"] == costRP:
 
     print("The selected RP is : {}".format(selectedRP))
-    return selectedRP
+    return selectedRP, dest

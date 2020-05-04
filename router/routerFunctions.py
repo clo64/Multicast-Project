@@ -328,3 +328,10 @@ def createFirstRoutingTable(myID):
 
     with open(str(myID) + '.json', 'w') as f:
         json.dump(localHost, f)
+
+def getPath(myID, destID):
+    
+    with open(str(myID) + '.json', 'r') as f:
+        routingTable = json.load(f)
+    
+    return routingTable['destination'][str(destID)][path]
