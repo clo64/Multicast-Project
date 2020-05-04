@@ -4,3 +4,4 @@ Router Hello Packet: 0x05
 Router Hello ACK: 0x06
 Link State Packet: 0x02
 Data Packet: 0x07
+Data Packet ACK: 0x08

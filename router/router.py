@@ -1,6 +1,7 @@
 import routerFunctions
 import commonFunctions
 import selectRP
+import selectRP
 import time
 import threading
 import sys
@@ -121,3 +122,54 @@ if __name__ == "__main__":
             my_socket.sendto(helloACKpkt, (commonFunctions.convertID(srcVal), 8888))
             my_socket.close()
             print("Got a hello message!")
+
+        if(packetType[0] == 7):
+            print("Recveied Data Packet")
+            seq, src, ndest, rdest, dest1, dest2, dest3, data = commonFunctions.decodeDataPkt(receivedPkt)
+
+            #Determine Core router runctionality or RP router functionality
+            if (dest1 & dest2 & dest3 == 0):
+                #Assume Core Router functionality
+                #If ndest is 1 unicast message to dest1
+                n = 3
+                srcID = src
+                selectedRP, selectedDests = selectRP.selectRP(ndest,n,myID,srcID)
+                pktType = 0x07
+                dests = [0] * 3
+                dests[0:len(selectedDests)] = selectedDests
+                datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data)
+                if ndest == 1:
+                    #send datapkt to dest1
+                #If ndest > 1 then need to send information to RP
+                else:
+                #Send pkt to selectedRP
+            elif (rdest != 0) & (ndest == 1):
+                #send datapkt to dest1 (or at least next hop)
+                
+            elif rdest != 0:
+                #Forward packet along to RP
+            else:
+                #Assume RP functionality
+                dests = [dest1, dest2, dest3]
+                destPath = [0] * 3
+                #Get paths for destinations
+                for ii in range(len(dests)):
+                    if dests[ii] != 0:
+                        destPath[ii] = routerFunctions.getPath(myID,dests[ii])
+                    else:
+                        destPath.pop(ii)
+                #Check paths to see if next hop is the same
+                # I CANNOT FOR THE LIFE OF ME CODE THIS SECTION AT 6 AM
+                lookaheadFlag = []
+                for ii in range(3):
+                    for jj in range(3):
+                        lookaheadFlag = 0
+                for ii in range(len(destPath)-1):
+                    for jj in range(ii+1,len(destPath)):
+                        if destPath[ii][0] == destPath[jj][0]:
+                            lookaheadFlag[ii] = jj
+                #Determine how to send packets based on if other destinations
+                #have the same next hop
+                for ii in range(len(lookaheadFlag)):
+
+                #eventually zero out rdest as rdest has processed the information
