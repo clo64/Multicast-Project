@@ -101,7 +101,7 @@ class Graph(object):
         if path:
             path.appendleft(curr)
         return path
-
+"""
 def dijkstra(g):
     distance_matrix = np.zeros((8, 8))
     for i in range(g.vertex):
@@ -109,9 +109,9 @@ def dijkstra(g):
             temp = g.dijkstra(i, j)
             distance_matrix[i, j] = (len(temp))
 
-    print(distance_matrix)
-    return distance_matrix
-
+    print(temp)
+    return temp
+"""
 """
 if __name__ == "__main__":
 
