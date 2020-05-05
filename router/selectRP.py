@@ -36,7 +36,7 @@ def bestkn(k,n,myID,srcID):
     #Narrow down to only K number of destinations
     for ii in range(len(sortedDest) - k):
         sortedDest.pop()
-    print(sortedDest)
+    #print(sortedDest)
     return sortedDest
 
 
