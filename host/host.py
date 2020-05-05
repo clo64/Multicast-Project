@@ -34,3 +34,8 @@ if __name__ == "__main__":
         
         data = hostFunctions.receive_packet('0.0.0.0', 8888)
 
+        packetType = hostFunctions.decodePktType(data)
+
+        if(packetType[0] == 8):
+            print("I'm a host and got some data")
+
