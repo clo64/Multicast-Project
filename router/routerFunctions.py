@@ -13,14 +13,16 @@ import os
 import subprocess
 import re
 from collections import defaultdict
+import dijkstra
 
 SEQCOUNT = 1
-#This semaphore is used exclusively for coordinating the link state
-#send functions: sendLinkState and forwardLinkState
+#Semaphore for protecting send functions from one another.
+#sendLinkState, forwardLinkState, sendData
 sem = threading.Semaphore()
 #This emaphore used to synchronize receive socket bindings, without it
-#system would crach after minute-ish
+#system would crash after minute-ish
 recHelloSynch = threading.Semaphore()
+
 
 def getIpFromRoute():
     """
@@ -101,7 +103,7 @@ def forwardLinkState(ipAddresses, linkState):
         sem.release()
 
 def receive_packet(my_addr, port_num):
-    #causing error is socket is already bound
+    #causing error if socket is already bound
     #trying a while True loop to eliminate error
     recHelloSynch.acquire()
     while True:
@@ -356,3 +358,68 @@ def getPath(myID, destID):
         routingTable = json.load(f)
     
     return routingTable['destination'][str(destID)]['path']
+
+"""
+Function to test for sending data and waiting for an ACK
+Function will not return until it gets an ACK
+"""
+
+def sendData(dataPkt, dst, myID):
+    receivedACK = False
+    #want to send packet and wait for response, if not in whatever time,
+    #we send again...
+    while not receivedACK: 
+        #send lock
+        sem.acquire()
+        try:
+            my_socket = socket(AF_INET, SOCK_DGRAM)
+            my_socket.sendto(dataPkt, (commonFunctions.convertID(dst), 8888))
+            my_socket.close()
+            print("Sent Data Packet")
+            sem.release()
+        except:
+            print("Failed data send, trying again")
+            sem.release()
+            continue
+        #setup timed listen for response. 
+        recHelloSynch.acquire()
+        print("Waiting to receive data ACK")
+        try:
+            my_socket = socket(AF_INET, SOCK_DGRAM)
+            my_socket.settimeout(4)
+            my_socket.bind(('0.0.0.0', 8888))
+            data, addr = my_socket.recvfrom(1024)
+            recHelloSynch.release()
+            print("Data:")
+            print(data)
+            if(decodePktType(data)[0] == 8):
+                print("Got data ACK")
+                receivedACK = True
+                recHelloSynch.release()
+                return 1
+        except:
+            print("Didn't get Data ACK, trying again")
+            recHelloSynch.release()
+
+def sendDataACK(dst):
+    pktType = 0x08
+    seq = 0x01
+    dst = dst
+    helloACK = struct.pack('BBB', pktType, seq, dst)
+
+    sem.acquire()
+    try:
+        my_socket = socket(AF_INET, SOCK_DGRAM)
+        my_socket.sendto(helloACK, (commonFunctions.convertID(dst), 8888))
+        my_socket.close()
+        sem.release()
+        print("Data ACK sent")
+    except:
+        sem.release()
+        print("Data ACK send failed")
+
+
+def runDijkstra(nodeGraph):
+    graph = dijkstra.Graph(nodeGraph)
+    time.sleep(2)
+    threading.Timer(10, runDijkstra, [nodeGraph]).start()

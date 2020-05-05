@@ -11,6 +11,8 @@ import threading
 import subprocess
 import json
 
+sendSem = threading.Semaphore()
+recSem = threading.Semaphore()
 
 def createHelloPacket(pkttype, seq, src):
     """
@@ -29,15 +31,24 @@ def sendHelloPacket(my_addr, pkt, dst, myLink, myID):
     print("Socket Timeout Set")
 
     while (not helloAckFlag):
+
+        sendSem.acquire()
+
         my_socket = socket(AF_INET, SOCK_DGRAM)
         my_socket.setsockopt(SOL_SOCKET, SO_BROADCAST, 1) 
         my_socket.sendto(pkt, (dst, 8888))
         my_socket.close()
+
+        sendSem.release()
+
         print("Sent packet to the destination: " + dst)
         #send_packet(pkt, dst)
         print("Hello Sent, waiting for ACK")
         time.sleep(1)
         #my_socket.bind((my_addr, 8889))
+
+        recSem.acquire()
+
         my_socket = socket(AF_INET, SOCK_DGRAM)   
         my_socket.settimeout(4)
         my_socket.bind((my_addr, 8888))
@@ -46,6 +57,9 @@ def sendHelloPacket(my_addr, pkt, dst, myLink, myID):
             print("Listening for Hello ACK")
             data, addr = my_socket.recvfrom(1024)
             pktType = decodePktType(data)
+
+            recSem.release()
+
             if (pktType[0] == 4):
                 print("Hello ACK Received")
                 print("Network joined")
@@ -57,6 +71,7 @@ def sendHelloPacket(my_addr, pkt, dst, myLink, myID):
                 myLink.update(graphUpdate)
                 helloAckFlag = True
         except:
+            recSem.release()
             continue
     return data, addr, myLink
 
@@ -74,11 +89,13 @@ def receive_packet(my_addr, port_num):
     """
     Listens at an IP:port
     """
+    recSem.acquire()
     my_socket = socket(AF_INET, SOCK_DGRAM)
     my_socket.bind((my_addr, port_num))
     while True:
         data, addr = my_socket.recvfrom(1024)
         #print("Received packet", data, "from source", addr)
+        recSem.release()
         break
     return data
 
@@ -98,12 +115,51 @@ def broadcastLinkState(myID, broadcastIP, myLink):
 
     pkt = struct.pack('BiiB', pktType, 1, len(data), src)+data
     try:
+        sendSem.acquire()
         my_socket = socket(AF_INET, SOCK_DGRAM)
         my_socket.setsockopt(SOL_SOCKET, SO_BROADCAST, 1) 
         my_socket.sendto(pkt, ('192.168.1.255', 8888))
         my_socket.close()
+        sendSem.release()
         time.sleep(1)
     except:
         print("Send error, trying again")
 
     threading.Timer(10, broadcastLinkState, [myID, broadcastIP, myLink]).start()
+
+def sendData(dataPkt, dst, myID):
+    receivedACK = False
+    #want to send packet and wait for response, if not in whatever time,
+    #we send again...
+    while not receivedACK: 
+        #send lock
+        sendSem.acquire()
+        try:
+            my_socket = socket(AF_INET, SOCK_DGRAM)
+            my_socket.sendto(dataPkt, (commonFunctions.convertID(dst), 8888))
+            my_socket.close()
+            print("Sent Data Packet")
+            sendSem.release()
+        except:
+            print("Failed data send, trying again")
+            sendSem.release()
+            continue
+        #setup timed listen for response. 
+        recSem.acquire()
+        print("Waiting to receive data ACK")
+        try:
+            my_socket = socket(AF_INET, SOCK_DGRAM)
+            my_socket.settimeout(4)
+            my_socket.bind(('0.0.0.0', 8888))
+            data, addr = my_socket.recvfrom(1024)
+            recHelloSynch.release()
+            print("Data:")
+            print(data)
+            if(decodePktType(data)[0] == 8):
+                print("Got data ACK")
+                receivedACK = True
+                recSem.release()
+                return 1
+        except:
+            print("Didn't get Data ACK, trying again")
+            recSem.release()
