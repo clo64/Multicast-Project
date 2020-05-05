@@ -67,9 +67,15 @@ if __name__ == "__main__":
     
     #initializes Link State transmission to occur every 10 seconds
     routerFunctions.sendLinkState(myID, nodeGraph)
+    #initializes dijkstra to run every 15 seconds
+    #routerFunctions.runDijkstra(nodeGraph)
 
     while True:
         #listen on all ports logic here
+
+        #test send data packet ***** remove before flight *********
+        #routerFunctions.sendData(routerHelloPacket, 101, 201)
+
         receivedPkt, addr = routerFunctions.receive_packet('0.0.0.0', 8888)
         packetType = routerFunctions.decodePktType(receivedPkt)
         
@@ -123,8 +129,10 @@ if __name__ == "__main__":
             my_socket.close()
             print("Got a hello message!")
 
+"""
         if(packetType[0] == 7):
             print("Recveied Data Packet")
+            #send ACK here
             seq, src, ndest, rdest, dest1, dest2, dest3, data = commonFunctions.decodeDataPkt(receivedPkt)
             pktType = 0x07
             #Determine Core router runctionality or RP router functionality
@@ -199,7 +207,7 @@ if __name__ == "__main__":
 
 
                 #eventually zero out rdest as rdest has processed the information
-"""
+
 #Just some test code
 destPath = [[1,2,3],[1,5,6],[1,7,8]]
 lookaheadFlag = []
