@@ -8,6 +8,7 @@ import sys
 import struct
 import json
 import os
+import itertools
 from socket import *
 
 if __name__ == "__main__":
@@ -140,9 +141,9 @@ if __name__ == "__main__":
                 datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data)
                 if ndest == 1:
                     #send datapkt to dest1
-                #If ndest > 1 then need to send information to RP
                 else:
-                #Send pkt to selectedRP
+                    #If ndest > 1 then need to send information to RP
+                    #Send pkt to selectedRP
             elif (rdest != 0) & (ndest == 1):
                 #send datapkt to dest1 (or at least next hop)
                 
@@ -153,23 +154,48 @@ if __name__ == "__main__":
                 dests = [dest1, dest2, dest3]
                 destPath = [0] * 3
                 #Get paths for destinations
+                eleDelete = []
                 for ii in range(len(dests)):
                     if dests[ii] != 0:
                         destPath[ii] = routerFunctions.getPath(myID,dests[ii])
                     else:
-                        destPath.pop(ii)
-                #Check paths to see if next hop is the same
-                # I CANNOT FOR THE LIFE OF ME CODE THIS SECTION AT 6 AM
+                        eleDelete.append(ii)
+                        #destPath.pop(ii)
+                #Delete elements for unavailable destinations
+                for ele in eleDelete
+                    destPath.pop(ele)
+            
+                #Check combinations of paths to see if next hop is the same
                 lookaheadFlag = []
-                for ii in range(3):
-                    for jj in range(3):
-                        lookaheadFlag = 0
-                for ii in range(len(destPath)-1):
-                    for jj in range(ii+1,len(destPath)):
-                        if destPath[ii][0] == destPath[jj][0]:
-                            lookaheadFlag[ii] = jj
+                index=range(len(destPath))
+                for a, b in itertools.combinations(index, 2):
+                    if destPath[a][0] == destPath[b][0]:
+                        lookaheadFlag.append([a,b])
+                    #print("DestPathA {}: {} DestPathB {}: {}".format(a,destPath[a][0], b, destPath[b][0]))
+
                 #Determine how to send packets based on if other destinations
                 #have the same next hop
-                for ii in range(len(lookaheadFlag)):
+                if len(lookaheadFlag) == len(destPath):
+                    #All messages going to same next hop
+                else:
+                    #just send dests[lookaheadFlag[0][0]] and dests[lookaheadFlag[0][1]] to gether but
+                    #not the other value
+                    #if this condition is hit there will only be one entry in the lookaheadFlag
+                    #send(dests[lookaheadFlag[0][0]] and dests[lookaheadFlag[0][1]])
+                    if len(destPath) == 3:
+                        dests.pop(lookaheadFlag[0])
+                        dests.pop(lookaheadFlag[1])
+                        #send(dests)
+
 
                 #eventually zero out rdest as rdest has processed the information
+"""
+#Just some test code
+destPath = [[1,2,3],[1,5,6],[1,7,8]]
+lookaheadFlag = []
+index=range(len(destPath))
+for a, b in itertools.combinations(index, 2):
+    if destPath[a][0] == destPath[b][0]:
+        lookaheadFlag.append([a,b])
+print(lookaheadFlag)
+"""

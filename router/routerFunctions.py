@@ -334,4 +334,4 @@ def getPath(myID, destID):
     with open(str(myID) + '.json', 'r') as f:
         routingTable = json.load(f)
     
-    return routingTable['destination'][str(destID)][path]
+    return routingTable['destination'][str(destID)]['path']
