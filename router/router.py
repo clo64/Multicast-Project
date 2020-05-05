@@ -1,7 +1,6 @@
 import routerFunctions
 import commonFunctions
 import selectRP
-import selectRP
 import time
 import threading
 import sys
@@ -30,7 +29,7 @@ if __name__ == "__main__":
         routerFunctions.createFirstRoutingTable(myID)
 
     #TESTING
-    #selectRP.bestkn(2,3,myID)
+    #selectRP.bestkn(2,3,myID,101)
     #selectRP.selectRP(3,3,myID,101)
     #quit()
 
@@ -135,9 +134,7 @@ if __name__ == "__main__":
             print("Recveied Data Packet")
             #send ACK here
             seq, src, ndest, rdest, dest1, dest2, dest3, data = commonFunctions.decodeDataPkt(receivedPkt)
-            
-            sendDataACK(src)
-
+            pktType = 0x07
             #Determine Core router runctionality or RP router functionality
             if (dest1 & dest2 & dest3 == 0):
                 #Assume Core Router functionality
@@ -145,20 +142,31 @@ if __name__ == "__main__":
                 n = 3
                 srcID = src
                 selectedRP, selectedDests = selectRP.selectRP(ndest,n,myID,srcID)
-                pktType = 0x07
                 dests = [0] * 3
                 dests[0:len(selectedDests)] = selectedDests
-                datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data)
+                
                 if ndest == 1:
                     #send datapkt to dest1
+                    selectedRP = 0
+                    datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data)
+                    nextHop = commonFunctions.getNextHop(myID,dests[0])
+                    sendData(nextHop, datapkt)
                 else:
                     #If ndest > 1 then need to send information to RP
                     #Send pkt to selectedRP
-            elif (rdest != 0) & (ndest == 1):
-                #send datapkt to dest1 (or at least next hop)
-                
+                    datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data)
+                    nextHop = commonFunctions.getNextHop(myID,rdest)
+                    sendData(nextHop, datapkt)
             elif rdest != 0:
                 #Forward packet along to RP
+                datapkt = receivedPkt
+                nextHop = commonFunctions.getNextHop(myID,rdest)
+                sendData(nextHop, datapkt)
+            elif ndest == 1:
+                #Forward packet to dest1
+                datapkt = receivedPkt
+                nextHop = commonFunctions.getNextHop(myID,dest1)
+                sendData(nextHop, datapkt)
             else:
                 #Assume RP functionality
                 dests = [dest1, dest2, dest3]
