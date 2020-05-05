@@ -50,7 +50,7 @@ if __name__ == "__main__":
         """
 
         data = hostFunctions.receive_packet('0.0.0.0', 8888)
-    #NEED to update function to move on after receiving ACK
+        #NEED to update function to move on after receiving ACK
 
     #create data packet
     pktType = 0x07
