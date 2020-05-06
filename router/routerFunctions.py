@@ -82,7 +82,7 @@ def sendLinkState(myID, nodeGraph):
         time.sleep(1)
         #continuously call the function in thread 
     sem.release()
-    threading.Timer(10, sendLinkState, [myID, nodeGraph]).start()
+    threading.Timer(15, sendLinkState, [myID, nodeGraph]).start()
 
 def forwardLinkState(ipAddresses, linkState):
     #unreliable forward on all ports except the one link state received on
@@ -252,6 +252,8 @@ def updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph):
         nodeGraph.update(linkStateData)
         print("Updated old graph")
         print(nodeGraph)
+        print("Number of deviced in graph:")
+        print(len(nodeGraph))
         return nodeGraph
     else:
         newKeyPair = {str(src): seq}
@@ -259,6 +261,8 @@ def updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph):
         nodeGraph.update(linkStateData)
         print("Added new entry to graph")
         print(nodeGraph)
+        print("Number of deviced in graph:")
+        print(len(nodeGraph))
         return nodeGraph
 
 def writeHostJsonFile(helloSrc, myID):

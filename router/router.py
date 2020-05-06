@@ -45,6 +45,8 @@ if __name__ == "__main__":
     ipAddresses = routerFunctions.getIpFromRoute()
     localStoreIPAddresses = ipAddresses
     
+
+    
     """
     Router "Hello" logic. The router spins a new thread every iteration of the loop. The thread
     loops through the ipAddresses array and sends a router hello packet. If the logic succesfully 
@@ -96,7 +98,7 @@ if __name__ == "__main__":
 
         #if packet type 2, link state packet, how do we respond??
         if(packetType[0] == 2):
-            print("got a link state packet")
+            ipAddresses = routerFunctions.getIpFromRoute()
             seq, length, src, data = routerFunctions.decodeLinkStatePkt(receivedPkt)
             """
             print("Here's the src value")
@@ -108,7 +110,7 @@ if __name__ == "__main__":
             if(src != myID):
                 if(src > 150):
                     ipAddresses = routerFunctions.getIpFromRoute()
-                    ipAddresses.remove(addr[0])
+                    ipAddresses.remove(addr[0])   
                 linkStateForwardThread = threading.Thread(target=routerFunctions.forwardLinkState, args=(ipAddresses, receivedPkt))
                 linkStateForwardThread.start()
                 nodeGraph = routerFunctions.updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph)
