@@ -117,7 +117,11 @@ if __name__ == "__main__":
                 with open("nodeGraph" + str(myID) + '.json', 'w') as f:
                     json.dump(nodeGraph, f, indent=3)
                 #Run dijkstra after updating nodeGraph
-                routerFunctions.runDijkstra(nodeGraph, myID)
+
+                #*****Commented out for testing**** --Chuck
+                #routerFunctions.runDijkstra(nodeGraph, myID)
+                #*****throwing key error***********
+                
             #spin new thread to forward link state on all nodes except the node it
             #came in on!!
 
