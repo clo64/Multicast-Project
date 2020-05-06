@@ -31,6 +31,8 @@ if __name__ == "__main__":
     
     hostFunctions.broadcastLinkState(myID, '192.168.1.255', myLink)
 
+    #print("DATA: {} ADDR: {} MYLINK: {}".format(data, addr, myLink))
+
     while True:
         
         try:
@@ -42,6 +44,7 @@ if __name__ == "__main__":
                 if(packetType[0] == 8):
                     print("I'm a host and got some data")
         
+        #Interupting the code by hitting CTRL+C lets you send a data packet on demand
         except KeyboardInterrupt:
             #k out of n destinations 1-3
             ndest = input("Enter K out of N (1-3):")
@@ -60,5 +63,6 @@ if __name__ == "__main__":
             dest2 = 0
             dest3 = 0
             datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, rdest, dest1, dest2, dest3, data)
-            hostFunctions.sendData(datapkt, '192.168.1.255', myID)
+            #hostFunctions.sendData(datapkt, 201, myID)
+            hostFunctions.sendData(datapkt, myLink[str(myID)][0], myID)
             print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, rdest, dest1, dest2, dest3, data))

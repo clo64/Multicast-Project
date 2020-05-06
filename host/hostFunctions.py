@@ -135,14 +135,19 @@ def sendData(dataPkt, dst, myID):
         #send lock
         sendSem.acquire()
         try:
+            print("creating socket")
             my_socket = socket(AF_INET, SOCK_DGRAM)
-            my_socket.sendto(dataPkt, (commonFunctions.convertID(dst), 8888))
+            print("sending data: {} to IP: {}".format(dataPkt, str(commonFunctions.convertID(dst))))
+            my_socket.sendto(dataPkt, (str(commonFunctions.convertID(dst)), 8888))
+            #my_socket.sendto(dataPkt, ('192.168.1.201', 8888))
+            print("closing socket")
             my_socket.close()
             print("Sent Data Packet")
             sendSem.release()
         except:
             print("Failed data send, trying again")
             sendSem.release()
+            quit()
             continue
         #setup timed listen for response. 
         recSem.acquire()

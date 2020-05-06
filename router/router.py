@@ -68,7 +68,7 @@ if __name__ == "__main__":
     #initializes Link State transmission to occur every 10 seconds
     routerFunctions.sendLinkState(myID, nodeGraph)
     #initializes dijkstra to run every 15 seconds
-    routerFunctions.runDijkstra(nodeGraph, myID)
+    #routerFunctions.runDijkstra(nodeGraph, myID)
 
     while True:
         #listen on all ports logic here
@@ -112,6 +112,10 @@ if __name__ == "__main__":
                 linkStateForwardThread = threading.Thread(target=routerFunctions.forwardLinkState, args=(ipAddresses, receivedPkt))
                 linkStateForwardThread.start()
                 nodeGraph = routerFunctions.updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph)
+                with open("nodeGraph" + str(myID) + '.json', 'w') as f:
+                    json.dump(nodeGraph, f, indent=3)
+                #Run dijkstra after updating nodeGraph
+                routerFunctions.runDijkstra(nodeGraph, myID)
             #spin new thread to forward link state on all nodes except the node it
             #came in on!!
 

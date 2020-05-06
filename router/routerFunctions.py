@@ -258,7 +258,7 @@ def updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph):
         linkStateSeqNumber.update(newKeyPair)
         nodeGraph.update(linkStateData)
         print("Added new entry to graph")
-        print(nodeGraph)
+        print(nodeGraph) 
         return nodeGraph
 
 def writeHostJsonFile(helloSrc, myID):
@@ -350,7 +350,7 @@ def createFirstRoutingTable(myID):
                 } } }
 
     with open(str(myID) + '.json', 'w') as f:
-        json.dump(localHost, f)
+        json.dump(localHost, f, indent=3)
 
 def getPath(myID, destID):
     
@@ -444,5 +444,5 @@ def runDijkstra(nodeGraph, myID):
     with open(str(myID) + '.json', 'w') as f:
         json.dump(tempRoutingTable, f, indent=3)
 
-    time.sleep(2)
-    threading.Timer(15, runDijkstra, [graphnew, myID]).start()
+    #time.sleep(2)
+    #threading.Timer(15, runDijkstra, [graphnew, myID]).start()
