@@ -15,8 +15,8 @@ def createDataPacket(pktType, seq, src, ndest, rdest, dest1, dest2, dest3, data)
     Create data packet
     """
     pktFormat = "BiiiBBBBB"
-    data = struct.pack(pktFormat, pktType, seq, src, len(data), ndest, rdest, dest1, dest2, dest3, data)
-    return data
+    dataPkt = struct.pack(pktFormat, pktType, seq, src, len(data), ndest, rdest, dest1, dest2, dest3)+data
+    return dataPkt
 
 def decodeDataPkt(pkt):
     """

@@ -354,7 +354,7 @@ def createFirstRoutingTable(myID):
                 } } }
 
     with open(str(myID) + '.json', 'w') as f:
-        json.dump(localHost, f)
+        json.dump(localHost, f, indent=3)
 
 def getPath(myID, destID):
     
@@ -423,7 +423,30 @@ def sendDataACK(dst):
         print("Data ACK send failed")
 
 
-def runDijkstra(nodeGraph):
-    graph = dijkstra.Graph(nodeGraph)
-    time.sleep(2)
-    threading.Timer(10, runDijkstra, [nodeGraph]).start()
+def runDijkstra(nodeGraph, myID):
+    #Convert our graph implementation to one
+    #usable by the dijkstra algorithym
+    graphnew = {}
+    for key in nodeGraph.keys():
+        graphnew.update({key:{}})
+        for ele in range(len(nodeGraph[key])):
+            graphnew[key].update({nodeGraph[key][ele]:1})
+    #print(graphnew)
+
+    #Initalize tempRouting Table
+    tempRoutingTable = {"destination":{}}
+    for key in nodeGraph.keys():
+        tempPath = dijkstra.shortestPath(graphnew, str(myID), key)[1:]
+        tempEntry = {key: {
+                    "path": tempPath,
+                    "cost": len(tempPath)
+                } }
+        tempRoutingTable['destination'].update(tempEntry)
+
+    #print(json.dumps(tempRoutingTable, indent=3))
+
+    with open(str(myID) + '.json', 'w') as f:
+        json.dump(tempRoutingTable, f, indent=3)
+
+    #time.sleep(2)
+    #threading.Timer(15, runDijkstra, [graphnew, myID]).start()

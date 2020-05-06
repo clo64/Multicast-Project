@@ -104,7 +104,7 @@ def selectRP(k,n,myID,srcID):
         #Update entry to centeralTable
         ceteralTable.append(tableElement)
 
-    print(json.dumps(ceteralTable, indent = 3, sort_keys=True))
+    #print(json.dumps(ceteralTable, indent = 3, sort_keys=True))
 
     #Select RP from centeralized table
     selectedRP = ""

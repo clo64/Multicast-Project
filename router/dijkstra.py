@@ -1,156 +1,127 @@
-from collections import defaultdict
-from timeit import timeit
-import os
-import numpy as np
-from Queue import deque
-from pprint import pprint
-
-class Graph(object):
-
-    def __init__(self, graph_dict=None):
-        """ initializes a graph object 
-            If no dictionary or None is given, 
-            an empty dictionary will be used
-        """
-        if graph_dict == None:
-            graph_dict = {}
-        self.__graph_dict = graph_dict
-
-    def vertices(self):
-        """ returns the vertices of a graph """
-        return list(self.__graph_dict.keys())
-
-    def edges(self):
-        """ returns the edges of a graph """
-        return self.__generate_edges()
-
-    def add_vertex(self, vertex):
-        """ If the vertex "vertex" is not in 
-            self.__graph_dict, a key "vertex" with an empty
-            list as a value is added to the dictionary. 
-            Otherwise nothing has to be done. 
-        """
-        if vertex not in self.__graph_dict:
-            self.__graph_dict[vertex] = []
-
-    def add_edge(self, edge):
-        """ assumes that edge is of type set, tuple or list; 
-            between two vertices can be multiple edges! 
-        """
-        edge = set(edge)
-        (vertex1, vertex2) = tuple(edge)
-        if vertex1 in self.__graph_dict:
-            self.__graph_dict[vertex1].append(vertex2)
-        else:
-            self.__graph_dict[vertex1] = [vertex2]
-
-    def __generate_edges(self):
-        """ A static method generating the edges of the 
-            graph "graph". Edges are represented as sets 
-            with one (a loop back to the vertex) or two 
-            vertices 
-        """
-        edges = []
-        for vertex in self.__graph_dict:
-            for neighbour in self.__graph_dict[vertex]:
-                if {neighbour, vertex} not in edges:
-                    edges.append({vertex, neighbour})
-        return edges
-
-    def __str__(self):
-        res = "vertices: "
-        for k in self.__graph_dict:
-            res += str(k) + " "
-        res += "\nedges: "
-        for edge in self.__generate_edges():
-            res += str(edge) + " "
-        return res
-
-    def dijkstra(self, start, goal):
-        self.cost = {}
-        self.parent = {}
-        for v in range(self.vertex):
-            self.cost[v] = float("inf")
-            self.parent[v] = None
-
-        self.cost[start] = 0
-
-        vertices = set(self.cost)
-
-        while vertices:
-            curr = min(vertices, key=lambda v: self.cost[v])
-            vertices.remove(curr)
-            if self.cost[curr] == float("inf"):
-                break
-            for neighbor in self.graph[curr]:
-                diff = self.cost[curr] + self.weight.get((curr, neighbor))
-                if diff < self.cost[neighbor]:
-                    self.cost[neighbor] = diff
-                    self.parent[neighbor] = curr
-
-        path, curr = deque(), goal
-        count = 0
-        while self.parent[curr] is not None:
-            if count == 100:
-                path.clear()
-                return path
-                break
-            path.appendleft(curr)
-            curr = self.parent[curr]
-            count += 1
-        if path:
-            path.appendleft(curr)
-        return path
 """
-def dijkstra(g):
-    distance_matrix = np.zeros((8, 8))
-    for i in range(g.vertex):
-        for j in range(g.vertex):
-            temp = g.dijkstra(i, j)
-            distance_matrix[i, j] = (len(temp))
+graph = {
+'N1': {'N2': 1},
+'N12':{'N13':1},
+'N2': {'N4': 1, 'N13': 1},
+'N4': {'N5': 1, 'N12': 1},
+'N5': {'N6': 1},
+'N6': {'N7': 1},
+'N7': {'N8': 1},
+'N8': {'N9': 1},
+'N9': {'N10':1, 'N11': 1, 'N12':1},
+'N10':{'N11':1},
+'N11':{'N12':1},
+'N13':{'N12':1}
+}
 
-    print(temp)
-    return temp
+ex = { 
+    '101' : ['201'],
+    '102' : ['205'],
+    '103' : ['206'],
+    '104' : ['207'],
+    '201' : ['202', '203', '204', '101'],
+    '202' : ['201', '205'],
+    '203' : ['201', '206'],
+    '204' : ['201', '207'],
+    '205' : ['202', '206', '102'], 
+    '206' : ['203', '205', '207', '103'],
+    '207' : ['204', '206', '104']
+}
+graphnew = {}
+for key in ex.keys():
+    graphnew.update({key:{}})
+    for ele in range(len(ex[key])):
+        graphnew[key].update({ex[key][ele]:1})
+print(graphnew)
 """
-"""
-if __name__ == "__main__":
 
-    g = { "a" : ["d"],
-          "b" : ["c"],
-          "c" : ["b", "c", "d", "e"],
-          "d" : ["a", "c"],
-          "e" : ["c"],
-          "f" : []
-        }
+# Dijkstra's algorithm for shortest paths
+# David Eppstein, UC Irvine, 4 April 2002
 
+# http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/117228
+from priodict import priorityDictionary
 
-    graph = Graph(g)
-
-    print("Vertices of graph:")
-    print(graph.vertices())
-
-    print("Edges of graph:")
-    print(graph.edges())
-
-    print("Add vertex:")
-    graph.add_vertex("z")
-
-    print("Vertices of graph:")
-    print(graph.vertices())
- 
-    print("Add an edge:")
-    graph.add_edge({"a","z"})
+def Dijkstra(G,start,end=None):
+    """
+    Find shortest paths from the start vertex to all
+    vertices nearer than or equal to the end.
+    The input graph G is assumed to have the following
+    representation: A vertex can be any object that can
+    be used as an index into a dictionary.  G is a
+    dictionary, indexed by vertices.  For any vertex v,
+    G[v] is itself a dictionary, indexed by the neighbors
+    of v.  For any edge v->w, G[v][w] is the length of
+    the edge.  This is related to the representation in
+    <http://www.python.org/doc/essays/graphs.html>
+    where Guido van Rossum suggests representing graphs
+    as dictionaries mapping vertices to lists of neighbors,
+    however dictionaries of edges have many advantages
+    over lists: they can store extra information (here,
+    the lengths), they support fast existence tests,
+    and they allow easy modification of the graph by edge
+    insertion and removal.  Such modifications are not
+    needed here but are important in other graph algorithms.
+    Since dictionaries obey iterator protocol, a graph
+    represented as described here could be handed without
+    modification to an algorithm using Guido's representation.
+    Of course, G and G[v] need not be Python dict objects;
+    they can be any other object that obeys dict protocol,
+    for instance a wrapper in which vertices are URLs
+    and a call to G[v] loads the web page and finds its links.
     
-    print("Vertices of graph:")
-    print(graph.vertices())
+    The output is a pair (D,P) where D[v] is the distance
+    from start to v and P[v] is the predecessor of v along
+    the shortest path from s to v.
+    
+    Dijkstra's algorithm is only guaranteed to work correctly
+    when all edge lengths are positive. This code does not
+    verify this property for all edges (only the edges seen
+    before the end vertex is reached), but will correctly
+    compute shortest paths even for some graphs with negative
+    edges, and will raise an exception if it discovers that
+    a negative edge has caused it to make a mistake.
+    """
 
-    print("Edges of graph:")
-    print(graph.edges())
+    D = {}  # dictionary of final distances
+    P = {}  # dictionary of predecessors
+    Q = priorityDictionary()   # est.dist. of non-final vert.
+    Q[start] = 0
+    
+    for v in Q:
+        D[v] = Q[v]
+        if v == end: break
+        
+        for w in G[v]:
+            vwLength = D[v] + G[v][w]
+            if w in D:
+                if vwLength < D[w]:
+                    raise ValueError, \
+  "Dijkstra: found better path to already-final vertex"
+            elif w not in Q or vwLength < Q[w]:
+                Q[w] = vwLength
+                P[w] = v
+    
+    return (D,P)
+            
+def shortestPath(G,start,end):
+    """
+    Find a single shortest path from the given start vertex
+    to the given end vertex.
+    The input has the same conventions as Dijkstra().
+    The output is a list of the vertices in order along
+    the shortest path.
+    """
 
-    print('Adding an edge {"x","y"} with new vertices:')
-    graph.add_edge({"x","y"})
-    print("Vertices of graph:")
-    print(graph.vertices())
-    print("Edges of graph:")
-    print(graph.edges())
-"""
+    D,P = Dijkstra(G,start,end)
+    Path = []
+    while 1:
+        Path.append(end)
+        if end == start: break
+        end = P[end]
+    Path.reverse()
+    return Path
+
+
+#print shortestPath(graph, 'N1','N13')
+#print shortestPath(graph, 'N1','N12')
+#print shortestPath(graphnew, '101','102')
