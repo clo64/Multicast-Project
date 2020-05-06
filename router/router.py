@@ -68,7 +68,7 @@ if __name__ == "__main__":
     #initializes Link State transmission to occur every 10 seconds
     routerFunctions.sendLinkState(myID, nodeGraph)
     #initializes dijkstra to run every 15 seconds
-    #routerFunctions.runDijkstra(nodeGraph)
+    routerFunctions.runDijkstra(nodeGraph, myID)
 
     while True:
         #listen on all ports logic here
@@ -138,6 +138,7 @@ if __name__ == "__main__":
             srcID = src
             #Determine Core router runctionality or RP router functionality
             if (dest1 & dest2 & dest3 == 0):
+                print("Received data packet from hostSender")
                 #Assume Core Router functionality
                 #If ndest is 1 unicast message to dest1
                 #n from k out of n (hardcoded to 3 for this project)
@@ -146,6 +147,7 @@ if __name__ == "__main__":
                 dests[0:len(selectedDests)] = selectedDests
                 
                 if ndest == 1:
+                    print("ndest was 1, preparing to send unicast to destination")
                     #send datapkt to dest1
                     selectedRP = 0
                     datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data)
@@ -154,6 +156,7 @@ if __name__ == "__main__":
                     print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data))
 
                 else:
+                    print("ndest was {}, preparing to send to RP".format(ndest))
                     #If ndest > 1 then need to send information to RP
                     #Send pkt to selectedRP
                     emptyDests = dests.count(0)
@@ -163,18 +166,21 @@ if __name__ == "__main__":
                     routerFunctions.sendData(datapkt, nextHop, myID)
                     print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data))
             elif rdest != 0:
+                print("router along path to RP, preparing to send forward along message")
                 #Forward packet along to RP
                 datapkt = receivedPkt
                 nextHop = commonFunctions.getNextHop(myID,rdest)
                 routerFunctions.sendData(datapkt, nextHop, myID)
                 print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, rdest, dest1, dest2, dest3, data))
             elif ndest == 1:
+                print("router along path destination, preparing to send forward along message")
                 #Forward packet to dest1 (which is the only destination)
                 datapkt = receivedPkt
                 nextHop = commonFunctions.getNextHop(myID,dest1)
                 routerFunctions.sendData(datapkt, nextHop, myID)
                 print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, rdest, dest1, dest2, dest3, data))
             else:
+                print("router along path to multiple destinations, checking to see how to forward message along")
                 #Assume RP functionality
 
                 #Get paths for 
@@ -195,6 +201,7 @@ if __name__ == "__main__":
                 #Determine how to send packets based on if other destinations
                 #have the same next hop
                 if len(lookaheadFlag) == len(destsPath):
+                    print("all destinations have the same next hop, only sending one data packet")
                     #All messages going to same next hop
                     ndest = len(dests)
                     for ii in range(n - ndest):
@@ -204,6 +211,7 @@ if __name__ == "__main__":
                     routerFunctions.sendData(datapkt, nextHop, myID)
                     print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data))
                 else:
+                    print("need to bifurcate, will split and send messages accordingly")
                     #just send dests[lookaheadFlag[0][0]] and dests[lookaheadFlag[0][1]] to gether but
                     #not the other value
                     #if this condition is hit there will only be one entry in the lookaheadFlag

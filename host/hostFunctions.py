@@ -108,7 +108,7 @@ def broadcastLinkState(myID, broadcastIP, myLink):
 
     #create the link state packet
     pktType = 2
-    lengh = 1
+    length = 1
     src = int(myID)
     data = json.dumps(myLink)
     data = bytes(data).encode('utf-8')
@@ -152,7 +152,7 @@ def sendData(dataPkt, dst, myID):
             my_socket.settimeout(4)
             my_socket.bind(('0.0.0.0', 8888))
             data, addr = my_socket.recvfrom(1024)
-            recHelloSynch.release()
+            recSem.release()
             print("Data:")
             print(data)
             if(decodePktType(data)[0] == 8):
