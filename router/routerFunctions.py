@@ -19,7 +19,7 @@ SEQCOUNT = 1
 #Semaphore for protecting send functions from one another.
 #sendLinkState, forwardLinkState, sendData
 sem = threading.Semaphore()
-#This emaphore used to synchronize receive socket bindings, without it
+#This semaphore used to synchronize receive socket bindings, without it
 #system would crash after minute-ish
 recHelloSynch = threading.Semaphore()
 
@@ -82,7 +82,7 @@ def sendLinkState(myID, nodeGraph):
         time.sleep(1)
         #continuously call the function in thread 
     sem.release()
-    threading.Timer(15, sendLinkState, [myID, nodeGraph]).start()
+    threading.Timer(random.randint(1, 25), sendLinkState, [myID, nodeGraph]).start()
 
 def forwardLinkState(ipAddresses, linkState):
     #unreliable forward on all ports except the one link state received on
@@ -90,12 +90,11 @@ def forwardLinkState(ipAddresses, linkState):
     sem.acquire()
     try:
         for i in range(length):
-
+            
             my_socket = socket(AF_INET, SOCK_DGRAM)
             my_socket.sendto(linkState, (ipAddresses[i], 8888))
             my_socket.close()
             print("Forwarded Link State: " + ipAddresses[i])
-
             time.sleep(1)
         sem.release()
     except:
@@ -116,6 +115,7 @@ def receive_packet(my_addr, port_num):
             break
         except:
             print("Port busy, try again")
+            recHelloSynch.release()
             time.sleep(1)
             continue
 
@@ -151,7 +151,7 @@ def receiveRouterHello(myID, nodeGraph):
         pktType = decodePktType(data)
         recHelloSynch.release()
 
-        if (pktType[0] == 4): #Hello ACK
+        if (pktType == 4): #Hello ACK
             pkttype, seq, srcVal = struct.unpack('BBB', data)
             nodeGraphArray.append(str(srcVal))
             nodeGraph = {str(myID): nodeGraphArray}
@@ -159,7 +159,7 @@ def receiveRouterHello(myID, nodeGraph):
             ipOfACK = addr[0]
             return 1, nodeGraph, ipOfACK
             
-        elif (pktType[0] == 5): #Received Hello Packet
+        elif (pktType == 5): #Received Hello Packet
             pkttype, seq, srcVal = struct.unpack('BBB', data)
             my_socket = socket(AF_INET, SOCK_DGRAM)
             my_socket.sendto(helloACKpkt, (commonFunctions.convertID(srcVal), 8888))
@@ -221,7 +221,7 @@ def decodePktType(pkt):
     pktType = pkt[0:1]
     pkttype = struct.unpack('B', pktType)
 
-    return pkttype 
+    return pkttype[0] 
 
 def decodeLinkStatePkt(pkt):
     """
@@ -396,7 +396,7 @@ def sendData(dataPkt, dst, myID):
             recHelloSynch.release()
             print("Data:")
             print(data)
-            if(decodePktType(data)[0] == 8):
+            if(decodePktType(data) == 8):
                 print("Got data ACK")
                 receivedACK = True
                 recHelloSynch.release()
@@ -409,17 +409,16 @@ def sendDataACK(dstIP):
     pktType = 0x08
     seq = 0x01
     dataACK = struct.pack('BBB', pktType, seq, 0)
+    print("Before Sem Acquire")
+    
+    print("After sem Acquire")
+    my_socket = socket(AF_INET, SOCK_DGRAM)
+    my_socket.sendto(dataACK, (dstIP, 8888))
+    my_socket.close()
 
-    sem.acquire()
-    try:
-        my_socket = socket(AF_INET, SOCK_DGRAM)
-        my_socket.sendto(dataACK, (dstIP, 8888))
-        my_socket.close()
-        sem.release()
-        print("Data ACK sent")
-    except:
-        sem.release()
-        print("Data ACK send failed")
+   
+    print("Data ACK sent")
+    
 
 def runDijkstra(nodeGraph, myID):
     #Convert our graph implementation to one

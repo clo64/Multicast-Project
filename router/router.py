@@ -82,7 +82,7 @@ if __name__ == "__main__":
         packetType = routerFunctions.decodePktType(receivedPkt)
         
         #if packet type 1, Hello, respond with Hello ACK
-        if(packetType[0] == 1):
+        if(packetType == 1):
             helloType, helloSeq, helloSrc = routerFunctions.read_hello(receivedPkt)
             print("HelloSrc is: {}".format(helloSrc))
 
@@ -97,7 +97,7 @@ if __name__ == "__main__":
             print(nodeGraph)
 
         #if packet type 2, link state packet, how do we respond??
-        if(packetType[0] == 2):
+        if(packetType == 2):
             ipAddresses = routerFunctions.getIpFromRoute()
             seq, length, src, data = routerFunctions.decodeLinkStatePkt(receivedPkt)
             """
@@ -112,7 +112,7 @@ if __name__ == "__main__":
                     ipAddresses = routerFunctions.getIpFromRoute()
                     ipAddresses.remove(addr[0])   
                 linkStateForwardThread = threading.Thread(target=routerFunctions.forwardLinkState, args=(ipAddresses, receivedPkt))
-                linkStateForwardThread.start()
+                linkStateForwardThread.run()
                 nodeGraph = routerFunctions.updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph)
                 """
                 with open("nodeGraph" + str(myID) + '.json', 'w') as f:
@@ -120,6 +120,13 @@ if __name__ == "__main__":
                 """
                 #Run dijkstra after updating nodeGraph
                 routerFunctions.runDijkstra(nodeGraph, myID)
+
+                
+                #Seeing if clearing this slows things down..?
+                packetType = 0
+                
+                
+                
                 #*****Commented out for testing**** --Chuck
                 #routerFunctions.runDijkstra(nodeGraph, myID)
                 #*****throwing key error***********
@@ -133,7 +140,7 @@ if __name__ == "__main__":
         #if packet type 3, data, how to we respond?
 
         #In the event a router hello packet was previously missed
-        if(packetType[0] == 5):
+        if(packetType == 5):
             helloACKpkt = struct.pack('BBB', 0x04, 0x01, myID)
             pkttype, seq, srcVal = struct.unpack('BBB', receivedPkt)
             my_socket = socket(AF_INET, SOCK_DGRAM)
@@ -141,7 +148,7 @@ if __name__ == "__main__":
             my_socket.close()
             print("Got a hello message!")
 
-        if(packetType[0] == 7):
+        if(packetType == 7):
             print("Recveied Data Packet")
             print("Sending dataACK")
             print(addr)

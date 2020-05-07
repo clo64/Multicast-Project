@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
         packetType = hostFunctions.decodePktType(receivedPkt)
 
-        if(packetType[0] == 7):
+        if(packetType == 7):
             seq, src, ndest, rdest, dest1, dest2, dest3, data = commonFunctions.decodeDataPkt(receivedPkt)
             print(data)
             hostFunctions.sendDataACK(addr[0])
