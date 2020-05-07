@@ -60,7 +60,7 @@ def sendHelloPacket(my_addr, pkt, dst, myLink, myID):
 
             recSem.release()
 
-            if (pktType[0] == 4):
+            if (pktType == 4):
                 print("Hello ACK Received")
                 print("Network joined")
                 #take returned address, turn it into a code, append it to our linkstate
@@ -102,7 +102,7 @@ def receive_packet(my_addr, port_num):
 def decodePktType(pkt):
     pktType = pkt[0:1]
     pkttype = struct.unpack('B', pktType)
-    return pkttype 
+    return pkttype[0] 
 
 def broadcastLinkState(myID, broadcastIP, myLink):
 
@@ -121,11 +121,10 @@ def broadcastLinkState(myID, broadcastIP, myLink):
         my_socket.sendto(pkt, ('192.168.1.255', 8888))
         my_socket.close()
         sendSem.release()
-        time.sleep(1)
     except:
         print("Send error, trying again")
 
-    threading.Timer(10, broadcastLinkState, [myID, broadcastIP, myLink]).start()
+    threading.Timer(random.randint(1, 25), broadcastLinkState, [myID, broadcastIP, myLink]).start()
 
 def sendData(dataPkt, dst, myID):
     receivedACK = False
@@ -160,7 +159,7 @@ def sendData(dataPkt, dst, myID):
             recSem.release()
             print("Data:")
             print(data)
-            if(decodePktType(data)[0] == 8):
+            if(decodePktType(data) == 8):
                 print("Got data ACK")
                 receivedACK = True
                 recSem.release()
@@ -173,10 +172,10 @@ def sendDataACK(dstIP):
     pktType = 0x08
     seq = 0x01
     dataACK = struct.pack('BBB', pktType, seq, 0)
-
     sendSem.acquire()
     try:
         my_socket = socket(AF_INET, SOCK_DGRAM)
+        time.sleep(1)
         my_socket.sendto(dataACK, (dstIP, 8888))
         my_socket.close()
         sendSem.release()
