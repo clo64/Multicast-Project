@@ -114,10 +114,12 @@ if __name__ == "__main__":
                 linkStateForwardThread = threading.Thread(target=routerFunctions.forwardLinkState, args=(ipAddresses, receivedPkt))
                 linkStateForwardThread.start()
                 nodeGraph = routerFunctions.updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph)
+                """
                 with open("nodeGraph" + str(myID) + '.json', 'w') as f:
                     json.dump(nodeGraph, f, indent=3)
+                """
                 #Run dijkstra after updating nodeGraph
-
+                routerFunctions.runDijkstra(nodeGraph, myID)
                 #*****Commented out for testing**** --Chuck
                 #routerFunctions.runDijkstra(nodeGraph, myID)
                 #*****throwing key error***********
@@ -141,6 +143,9 @@ if __name__ == "__main__":
 
         if(packetType[0] == 7):
             print("Recveied Data Packet")
+            print("Sending dataACK")
+            print(addr)
+            routerFunctions.sendDataACK(addr[0])
             #send ACK here
             seq, src, ndest, rdest, dest1, dest2, dest3, data = commonFunctions.decodeDataPkt(receivedPkt)
             pktType = 0x07
@@ -160,7 +165,7 @@ if __name__ == "__main__":
                     print("ndest was 1, preparing to send unicast to destination")
                     #send datapkt to dest1
                     selectedRP = 0
-                    datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data)
+                    datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, selectedRP, int(dests[0]), int(dests[1]), int(dests[2]), data)
                     nextHop = commonFunctions.getNextHop(myID,dests[0])
                     routerFunctions.sendData(datapkt, nextHop, myID)
                     print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data))

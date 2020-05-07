@@ -89,15 +89,15 @@ def receive_packet(my_addr, port_num):
     """
     Listens at an IP:port
     """
-    recSem.acquire()
+    #recSem.acquire()
     my_socket = socket(AF_INET, SOCK_DGRAM)
     my_socket.bind((my_addr, port_num))
     while True:
         data, addr = my_socket.recvfrom(1024)
         #print("Received packet", data, "from source", addr)
-        recSem.release()
+        #recSem.release()
         break
-    return data
+    return data, addr
 
 def decodePktType(pkt):
     pktType = pkt[0:1]
@@ -168,3 +168,19 @@ def sendData(dataPkt, dst, myID):
         except:
             print("Didn't get Data ACK, trying again")
             recSem.release()
+
+def sendDataACK(dstIP):
+    pktType = 0x08
+    seq = 0x01
+    dataACK = struct.pack('BBB', pktType, seq, 0)
+
+    sendSem.acquire()
+    try:
+        my_socket = socket(AF_INET, SOCK_DGRAM)
+        my_socket.sendto(dataACK, (dstIP, 8888))
+        my_socket.close()
+        sendSem.release()
+        print("Data ACK sent")
+    except:
+        sendSem.release()
+        print("Data ACK send failed")

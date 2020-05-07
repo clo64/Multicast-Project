@@ -1,6 +1,3 @@
-import sys
-sys.path.append('../')
-import commonFunctions
 import os, json, glob
 from operator import itemgetter
 
@@ -75,17 +72,16 @@ def selectRP(k,n,myID,srcID):
     for file in contents:
         with open(file,'r') as f:
             data = json.load(f)
-        
         #Pull costs for each destination on a given router
         #Store them in a serpate array so they can be indiviually parsed later
         destCost = []
 
-        for node in data["destination"]:
+        for node in data['destination']:
             #print(node)
             #print(data["destination"][node])
             #print(data["destination"][node]["cost"])
             if node in dest:
-                destCost.append(data["destination"][node]["cost"])
+                destCost.append(data['destination'][node]['cost'])
             #print(dest["name"])
             #print(dest["path"])
             #print(dest["cost"])
@@ -123,3 +119,5 @@ def selectRP(k,n,myID,srcID):
 
     print("The selected RP is : {}".format(selectedRP))
     return selectedRP, dest
+
+selectRP(1,3,202,102)

@@ -49,13 +49,16 @@ if __name__ == "__main__":
         time.sleep(1)
         """
 
-        data = hostFunctions.receive_packet('0.0.0.0', 8888)
+        receivedPkt, addr = hostFunctions.receive_packet('0.0.0.0', 8888)
         #NEED to update function to move on after receiving ACK
 
-        packetType = hostFunctions.decodePktType(data)
+        packetType = hostFunctions.decodePktType(receivedPkt)
 
-        if(packetType[0] == 8):
-            print("I'm a host and got some data")
+        if(packetType[0] == 7):
+            seq, src, ndest, rdest, dest1, dest2, dest3, data = commonFunctions.decodeDataPkt(receivedPkt)
+            print(data)
+            hostFunctions.sendDataACK(addr[0])
+
 
     #create data packet
     pktType = 0x07

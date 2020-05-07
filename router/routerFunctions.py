@@ -405,23 +405,21 @@ def sendData(dataPkt, dst, myID):
             print("Didn't get Data ACK, trying again")
             recHelloSynch.release()
 
-def sendDataACK(dst):
+def sendDataACK(dstIP):
     pktType = 0x08
     seq = 0x01
-    dst = dst
-    helloACK = struct.pack('BBB', pktType, seq, dst)
+    dataACK = struct.pack('BBB', pktType, seq, 0)
 
     sem.acquire()
     try:
         my_socket = socket(AF_INET, SOCK_DGRAM)
-        my_socket.sendto(helloACK, (commonFunctions.convertID(dst), 8888))
+        my_socket.sendto(dataACK, (dstIP, 8888))
         my_socket.close()
         sem.release()
         print("Data ACK sent")
     except:
         sem.release()
         print("Data ACK send failed")
-
 
 def runDijkstra(nodeGraph, myID):
     #Convert our graph implementation to one
@@ -436,7 +434,11 @@ def runDijkstra(nodeGraph, myID):
     #Initalize tempRouting Table
     tempRoutingTable = {"destination":{}}
     for key in nodeGraph.keys():
-        tempPath = dijkstra.shortestPath(graphnew, str(myID), key)[1:]
+        try:
+            tempPath = dijkstra.shortestPath(graphnew, str(myID), key)[1:]
+        except KeyError:
+            print("KeyError on Key: {}".format(KeyError))
+            break
         tempEntry = {key: {
                     "path": tempPath,
                     "cost": len(tempPath)

@@ -14,7 +14,8 @@ def createDataPacket(pktType, seq, src, ndest, rdest, dest1, dest2, dest3, data)
     """
     Create data packet
     """
-    pktFormat = "BiiiBBBBB"
+    #pktFormat = "BiiiBBBBB"
+    pktFormat = "BBBBBBBBB"
     dataPkt = struct.pack(pktFormat, pktType, seq, src, len(data), ndest, rdest, dest1, dest2, dest3)+data
     return dataPkt
 
@@ -30,11 +31,12 @@ def decodeDataPkt(pkt):
     Returns:
         seq, src, length, ndest, rdest, dest1, dest2, dest3 -- Returns all unpacked data except pktType
     """
-    pktFormat = "BiiiBBBBB"
+    #pktFormat = "BiiiBBBBB"
+    pktFormat = "BBBBBBBBB"
     pktSize = struct.calcsize(pktFormat)
     pktHeader = pkt[:pktSize]
 
-    pktType, seq, src, length, ndest, rdest, dest1, dest2, dest3 = struct.unpack('BiiiBBBBB', pktHeader)
+    pktType, seq, src, length, ndest, rdest, dest1, dest2, dest3 = struct.unpack(pktFormat, pktHeader)
     data = pkt[pktSize:]
 
     return seq, src, ndest, rdest, dest1, dest2, dest3, data
