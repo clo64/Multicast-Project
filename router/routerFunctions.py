@@ -14,6 +14,7 @@ import subprocess
 import re
 from collections import defaultdict
 import dijkstra
+import itertools
 
 SEQCOUNT = 1
 #Semaphore for protecting send functions from one another.
@@ -419,7 +420,6 @@ def sendDataACK(dstIP):
    
     print("Data ACK sent")
     
-
 def runDijkstra(nodeGraph, myID):
     #Convert our graph implementation to one
     #usable by the dijkstra algorithym
@@ -451,3 +451,63 @@ def runDijkstra(nodeGraph, myID):
 
     #time.sleep(2)
     #threading.Timer(15, runDijkstra, [graphnew, myID]).start()
+
+def rpFunction(myID, pktType, n, seq, recID, ndest, rdest, dest1, dest2, dest3, data):
+    print("router along path to multiple destinations, checking to see how to forward message along")
+    #Assume RP functionality
+
+    #Get paths for 
+    dests = []
+    destsPath = []
+    for id in (dest for dest in [dest1, dest2, dest3] if dest != 0):
+        dests.append(id)
+        destsPath.append(getPath(myID,id))
+
+    #Check combinations of paths to see if next hop is the same
+    lookaheadFlag = []
+    index=range(len(destsPath))
+    for a, b in itertools.combinations(index, 2):
+        if destsPath[a][0] == destsPath[b][0]:
+            lookaheadFlag.append([a,b])
+        #print("DestPathA {}: {} DestPathB {}: {}".format(a,destPath[a][0], b, destPath[b][0]))
+
+    #Determine how to send packets based on if other destinations
+    #have the same next hop
+    if len(lookaheadFlag) == len(destsPath):
+        print("all destinations have the same next hop, only sending one data packet")
+        #All messages going to same next hop
+        ndest = len(dests)
+        rdest = 0
+        for ii in range(n - ndest):
+            dests.append(0)
+        datapkt = commonFunctions.createDataPacket(pktType, seq, recID, ndest, rdest, dests[0], dests[1], dests[2], data)
+        nextHop = commonFunctions.getNextHop(myID,dests[0])
+        sendData(datapkt, nextHop, myID)
+        print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, recID, ndest, rdest, dests[0], dests[1], dests[2], data))
+    else:
+        print("need to bifurcate, will split and send messages accordingly")
+        #just send dests[lookaheadFlag[0][0]] and dests[lookaheadFlag[0][1]] to gether but
+        #not the other value
+        #if this condition is hit there will only be one entry in the lookaheadFlag
+        #send(dests[lookaheadFlag[0][0]] and dests[lookaheadFlag[0][1]])
+        if len(lookaheadFlag) == 0:
+            ndest = 1
+            rdest = 0
+            for id in dests:
+                datapkt = commonFunctions.createDataPacket(pktType, seq, recID, ndest, rdest, id, 0, 0, data)
+                sendData(datapkt, id, myID)
+        else:
+            ndest = 2
+            rdest = 0
+            datapkt = commonFunctions.createDataPacket(pktType, seq, recID, ndest, rdest, dests[lookaheadFlag[0][0]], dests[lookaheadFlag[0][1]], 0, data)
+            nextHop = commonFunctions.getNextHop(myID,dests[lookaheadFlag[0][0]])
+            sendData(datapkt, nextHop, myID)
+            print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, recID, ndest, rdest, dests[lookaheadFlag[0][0]], dests[lookaheadFlag[0][1]], 0, data))
+            if len(destsPath) == 3:
+                dests.pop(lookaheadFlag[0][0])
+                dests.pop(lookaheadFlag[0][1])
+                ndest = 1
+                datapkt = commonFunctions.createDataPacket(pktType, seq, recID, ndest, rdest, dests[0], 0, 0, data)
+                nextHop = commonFunctions.getNextHop(myID,dests[0])
+                sendData(datapkt, nextHop, myID)
+                print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, recID, ndest, rdest, dests[0], 0, 0, data))

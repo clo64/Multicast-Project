@@ -151,57 +151,66 @@ if __name__ == "__main__":
         if(packetType == 7):
             print("Recveied Data Packet")
             print("Sending dataACK")
-            print(addr)
             routerFunctions.sendDataACK(addr[0])
-            #send ACK here
-            seq, src, ndest, rdest, dest1, dest2, dest3, data = commonFunctions.decodeDataPkt(receivedPkt)
+            #decode packet
+            seq, recID, ndest, rdest, dest1, dest2, dest3, data = commonFunctions.decodeDataPkt(receivedPkt)
             pktType = 0x07
             n = 3
-            srcID = src
+            print("Received PKT     pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data")
+            print("with information   {}       {}   {}     {}      {}          {}       {}        {}      {}".format(pktType, seq, recID, ndest, rdest, dest1, dest2, dest3, data))
             #Determine Core router runctionality or RP router functionality
-            if (dest1 & dest2 & dest3 == 0):
+            if (int(dest1) == int(dest2) == int(dest3) == 0):
                 print("Received data packet from hostSender")
                 #Assume Core Router functionality
                 #If ndest is 1 unicast message to dest1
                 #n from k out of n (hardcoded to 3 for this project)
-                selectedRP, selectedDests = selectRP.selectRP(ndest,n,myID,srcID)
+                selectedRP, selectedDests = selectRP.selectRP(ndest,n,myID,recID)
                 dests = [0] * 3
                 dests[0:len(selectedDests)] = selectedDests
                 
-                if ndest == 1:
+                if (ndest == 1):
                     print("ndest was 1, preparing to send unicast to destination")
                     #send datapkt to dest1
                     selectedRP = 0
-                    datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, selectedRP, int(dests[0]), int(dests[1]), int(dests[2]), data)
+                    datapkt = commonFunctions.createDataPacket(pktType, seq, recID, ndest, selectedRP, dests[0], dests[1], dests[2], data)
                     nextHop = commonFunctions.getNextHop(myID,dests[0])
                     routerFunctions.sendData(datapkt, nextHop, myID)
-                    print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data))
+                    print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, recID, ndest, selectedRP, dests[0], dests[1], dests[2], data))
 
                 else:
-                    print("ndest was {}, preparing to send to RP".format(ndest))
-                    #If ndest > 1 then need to send information to RP
-                    #Send pkt to selectedRP
-                    emptyDests = dests.count(0)
-                    ndest = n - emptyDests
-                    datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data)
-                    nextHop = commonFunctions.getNextHop(myID,selectedRP)
-                    routerFunctions.sendData(datapkt, nextHop, myID)
-                    print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data))
-            elif rdest != 0:
-                print("router along path to RP, preparing to send forward along message")
-                #Forward packet along to RP
-                datapkt = receivedPkt
-                nextHop = commonFunctions.getNextHop(myID,rdest)
-                routerFunctions.sendData(datapkt, nextHop, myID)
-                print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, rdest, dest1, dest2, dest3, data))
-            elif ndest == 1:
-                print("router along path destination, preparing to send forward along message")
+                    if myID == selectedRP:
+                        print("Core Router is also RP")
+                        rdest = 0
+                        routerFunctions.rpFunction(myID, pktType, n, seq, recID, ndest, rdest, dests[0], dests[1], dests[2], data)
+                    else:
+                        print("ndest was {}, preparing to send to RP".format(ndest))
+                        #If ndest > 1 then need to send information to RP
+                        #Send pkt to selectedRP
+                        emptyDests = dests.count(0)
+                        ndest = n - emptyDests
+                        print("Creating PKT     pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data")
+                        print("with information   {}       {}   {}     {}      {}        {}       {}        {}      {}".format(pktType, seq, recID, ndest, selectedRP, dests[0], dests[1], dests[2], data))
+                        datapkt = commonFunctions.createDataPacket(pktType, seq, recID, ndest, selectedRP, dests[0], dests[1], dests[2], data)
+                        nextHop = commonFunctions.getNextHop(myID, selectedRP)
+                        routerFunctions.sendData(datapkt, nextHop, myID)
+                        print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, recID, ndest, selectedRP, dests[0], dests[1], dests[2], data))
+            elif (ndest == 1 and rdest == 0):
+                print("router along path to destination, preparing to forward along message")
                 #Forward packet to dest1 (which is the only destination)
                 datapkt = receivedPkt
                 nextHop = commonFunctions.getNextHop(myID,dest1)
                 routerFunctions.sendData(datapkt, nextHop, myID)
-                print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, rdest, dest1, dest2, dest3, data))
+                print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, recID, ndest, rdest, dest1, dest2, dest3, data))
+            elif (rdest != 0 and myID != rdest):
+                print("router along path to RP, preparing to forward along message")
+                #Forward packet along to RP
+                datapkt = receivedPkt
+                nextHop = commonFunctions.getNextHop(myID,rdest)
+                routerFunctions.sendData(datapkt, nextHop, myID)
+                print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, recID, ndest, rdest, dest1, dest2, dest3, data))
             else:
+                routerFunctions.rpFunction(myID, pktType, n, seq, recID, ndest, rdest, dest1, dest2, dest3, data)
+                """
                 print("router along path to multiple destinations, checking to see how to forward message along")
                 #Assume RP functionality
 
@@ -226,35 +235,46 @@ if __name__ == "__main__":
                     print("all destinations have the same next hop, only sending one data packet")
                     #All messages going to same next hop
                     ndest = len(dests)
+                    rdest = 0
                     for ii in range(n - ndest):
                         dests.append(0)
-                    datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data)
+                    datapkt = commonFunctions.createDataPacket(pktType, seq, recID, ndest, rdest, dests[0], dests[1], dests[2], data)
                     nextHop = commonFunctions.getNextHop(myID,dests[0])
                     routerFunctions.sendData(datapkt, nextHop, myID)
-                    print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, selectedRP, dests[0], dests[1], dests[2], data))
+                    print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, recID, ndest, rdest, dests[0], dests[1], dests[2], data))
                 else:
                     print("need to bifurcate, will split and send messages accordingly")
                     #just send dests[lookaheadFlag[0][0]] and dests[lookaheadFlag[0][1]] to gether but
                     #not the other value
                     #if this condition is hit there will only be one entry in the lookaheadFlag
                     #send(dests[lookaheadFlag[0][0]] and dests[lookaheadFlag[0][1]])
-                    ndest = 2
-                    datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, rdest, dests[lookaheadFlag[0][0]], dests[lookaheadFlag[0][1]], 0, data)
-                    nextHop = commonFunctions.getNextHop(myID,dests[lookaheadFlag[0][0]])
-                    routerFunctions.sendData(datapkt, nextHop, myID)
-                    print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, rdest, dests[lookaheadFlag[0][0]], dests[lookaheadFlag[0][1]], 0, data))
-                    if len(destsPath) == 3:
-                        dests.pop(lookaheadFlag[0][0])
-                        dests.pop(lookaheadFlag[0][1])
+                    if len(lookaheadFlag) == 0:
                         ndest = 1
-                        datapkt = commonFunctions.createDataPacket(pktType, seq, src, ndest, rdest, dests[0], 0, 0, data)
-                        nextHop = commonFunctions.getNextHop(myID,dests[0])
+                        rdest = 0
+                        for id in dests:
+                            datapkt = commonFunctions.createDataPacket(pktType, seq, recID, ndest, rdest, id, 0, 0, data)
+                            routerFunctions.sendData(datapkt, id, myID)
+                    else:
+                        ndest = 2
+                        rdest = 0
+                        datapkt = commonFunctions.createDataPacket(pktType, seq, recID, ndest, rdest, dests[lookaheadFlag[0][0]], dests[lookaheadFlag[0][1]], 0, data)
+                        nextHop = commonFunctions.getNextHop(myID,dests[lookaheadFlag[0][0]])
                         routerFunctions.sendData(datapkt, nextHop, myID)
-                        print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, src, ndest, rdest, dests[0], 0, 0, data))
+                        print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, recID, ndest, rdest, dests[lookaheadFlag[0][0]], dests[lookaheadFlag[0][1]], 0, data))
+                        if len(destsPath) == 3:
+                            dests.pop(lookaheadFlag[0][0])
+                            dests.pop(lookaheadFlag[0][1])
+                            ndest = 1
+                            datapkt = commonFunctions.createDataPacket(pktType, seq, recID, ndest, rdest, dests[0], 0, 0, data)
+                            nextHop = commonFunctions.getNextHop(myID,dests[0])
+                            routerFunctions.sendData(datapkt, nextHop, myID)
+                            print("Sent Data Packet with information {} {} {} {} {} {} {} {} {}".format(pktType, seq, recID, ndest, rdest, dests[0], 0, 0, data))
+                """
 
 """
 #Just some test code
 destPath = [[1,2,3],[1,5,6],[1,7,8]]
+destPath = [[102],[103]]
 lookaheadFlag = []
 index=range(len(destPath))
 for a, b in itertools.combinations(index, 2):
