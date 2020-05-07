@@ -32,26 +32,28 @@ class topoFinal( Topo ):
     #Create a Mininet Environment
     def build( self, **_opts ):
 
-	info( "*** Creating Routers\n" )
-	
-	routers = [ self.addNode( 'r%d' % n, cls=LinuxRouter, 
-				  ip='192.168.1.%d/24' % n ) 
-				  for n in range(201,203) ]
+        info( "*** Creating Routers\n" )
+        
+        routers = [ self.addNode( 'r%d' % n, cls=LinuxRouter, 
+                    ip='192.168.1.%d/24' % n ) 
+                    for n in range(201,203) ]
 
-	info( "*** Creating Router Links\n" )
-	self.addLink( routers[routers.index('r201')], routers[routers.index('r202')],
-		intfName1='r201-eth0' )
+        info( "*** Creating Router Links\n" )
+        self.addLink( routers[routers.index('r201')], routers[routers.index('r202')],
+            intfName1='r201-eth0' )
 
-	info( "*** Creating Hosts\n" )
-	hosts = [ self.addHost( 'h%d' % n, 
-				ip='192.168.1.%d/24' % n )
-				for n in range(101,103) ]
+        info( "*** Creating Hosts\n" )
+        hosts = [ self.addHost( 'h%d' % n, 
+                    ip='192.168.1.%d/24' % n )
+                    for n in range(101,104) ]
 
-	info( "*** Creating Host Links\n" )
-	self.addLink( hosts[hosts.index('h101')], routers[routers.index('r201')],
-		intfName1='h101-eth0' )    
-	self.addLink( hosts[hosts.index('h102')], routers[routers.index('r202')],
-		intfName1='h102-eth0' )
+        info( "*** Creating Host Links\n" )
+        self.addLink( hosts[hosts.index('h101')], routers[routers.index('r201')],
+            intfName1='h101-eth0' )    
+        self.addLink( hosts[hosts.index('h102')], routers[routers.index('r202')],
+            intfName1='h102-eth0' )
+        self.addLink( hosts[hosts.index('h103')], routers[routers.index('r202')],
+            intfName1='h102-eth0' )
     
 def run():
     
@@ -63,7 +65,8 @@ def run():
     info( "*** Setup routes on all devices" )
     #Host routes
     net['h101'].cmd( 'route add -net 192.168.1.0/24 gw {}'.format(net['r201'].IP()) ) 
-    net['h102'].cmd( 'route add -net 192.168.1.0/24 gw {}'.format(net['r202'].IP()) ) 
+    net['h102'].cmd( 'route add -net 192.168.1.0/24 gw {}'.format(net['r202'].IP()) )
+    net['h103'].cmd( 'route add -net 192.168.1.0/24 gw {}'.format(net['r202'].IP()) ) 
    
     #Router r201 routes
     net['r201'].cmd( 'ip route add {}/32 dev r201-eth0'.format(net['r202'].IP()) )
@@ -72,6 +75,7 @@ def run():
     #Router r202 routes
     net['r202'].cmd( 'ip route add {}/32 dev r202-eth0'.format(net['r201'].IP()) )
     net['r202'].cmd( 'ip route add {}/32 dev r202-eth1'.format(net['h102'].IP()) ) 
+    net['r202'].cmd( 'ip route add {}/32 dev r202-eth2'.format(net['h103'].IP()) )
  
     #DEBUGGING INFO    
     info( "\n\n" )
