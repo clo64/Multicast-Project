@@ -58,8 +58,6 @@ if __name__ == "__main__":
         helloACKCounter = helloACKCounter + temp
         routerHelloThread.join()
         ipAddresses = localStoreIPAddresses
-        print("Node Graph Updated")
-        print(nodeGraph)
     
     #initializes Link State transmission to occur every 10 seconds
     routerFunctions.sendLinkState(myID, nodeGraph)
@@ -81,8 +79,6 @@ if __name__ == "__main__":
             #!! This should be an append situation, not a completely new file
             #This is an artifact from testing, should be replaced with an append
             routerFunctions.addHostToGraph(helloSrc, myID, nodeGraph)
-            print("Graph updated with host")
-            print(nodeGraph)
 
         if(packetType == 2):
             ipAddresses = routerFunctions.getIpFromRoute()
