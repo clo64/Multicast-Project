@@ -139,7 +139,7 @@ def broadcastLinkState(myID, broadcastIP, myLink):
 
         print("Send error, trying again")
 
-    threading.Timer(random.randint(1, 25), broadcastLinkState, [myID, broadcastIP, myLink]).start()
+    threading.Timer(random.randint(1, 35), broadcastLinkState, [myID, broadcastIP, myLink]).start()
 
 def sendData(dataPkt, dst, myID):
     """
@@ -173,7 +173,7 @@ def sendData(dataPkt, dst, myID):
         try:
             my_socket = socket(AF_INET, SOCK_DGRAM)
             my_socket.settimeout(4)
-            my_socket.bind(('0.0.0.0', 8888))
+            my_socket.bind(('0.0.0.0', 8889))
             data, addr = my_socket.recvfrom(1024)
             recSem.release()
             if(decodePktType(data) == 8):
@@ -193,7 +193,7 @@ def sendDataACK(dstIP):
     try:
         my_socket = socket(AF_INET, SOCK_DGRAM)
         time.sleep(1)
-        my_socket.sendto(dataACK, (dstIP, 8888))
+        my_socket.sendto(dataACK, (dstIP, 8889))
         my_socket.close()
         sendSem.release()
         print("Data ACK sent")
