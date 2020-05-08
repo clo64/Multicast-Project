@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
                 packetType = hostFunctions.decodePktType(receivedPkt)
 
-                if(packetType[0] == 8):
+                if(packetType == 8):
                     print("Received dataACK")
 
         #Interupting the code by hitting CTRL+C lets you send a data packet on demand

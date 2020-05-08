@@ -58,7 +58,6 @@ def sendLinkState(myID, nodeGraph):
     """
     global SEQCOUNT
     SEQCOUNT += 1
-    print(SEQCOUNT)
 
     ipAddresses = getIpFromRoute()
     length = len(ipAddresses)
@@ -79,7 +78,6 @@ def sendLinkState(myID, nodeGraph):
         my_socket = socket(AF_INET, SOCK_DGRAM)
         my_socket.sendto(linkStatePacket, (ipAddresses[i], 8888))
         my_socket.close()
-        print("Sent packet to the destination: " + ipAddresses[i])
         time.sleep(1)
         #continuously call the function in thread 
     sem.release()
@@ -95,7 +93,6 @@ def forwardLinkState(ipAddresses, linkState):
             my_socket = socket(AF_INET, SOCK_DGRAM)
             my_socket.sendto(linkState, (ipAddresses[i], 8888))
             my_socket.close()
-            print("Forwarded Link State: " + ipAddresses[i])
             time.sleep(1)
         sem.release()
     except:
@@ -251,19 +248,13 @@ def updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph):
     linkStateData = json.loads(data)
     if (str(src) in nodeGraph) and (seq > int(linkStateSeqNumber[str(src)])):
         nodeGraph.update(linkStateData)
-        print("Updated old graph")
-        print(nodeGraph)
-        print("Number of deviced in graph:")
-        print(len(nodeGraph))
+        print("Number of devices in graph: {}".format(len(nodeGraph)))
         return nodeGraph
     else:
         newKeyPair = {str(src): seq}
         linkStateSeqNumber.update(newKeyPair)
         nodeGraph.update(linkStateData)
-        print("Added new entry to graph")
-        print(nodeGraph)
-        print("Number of deviced in graph:")
-        print(len(nodeGraph))
+        print("Number of devices in graph: {}".format(len(nodeGraph)))
         return nodeGraph
 
 def writeHostJsonFile(helloSrc, myID):
@@ -377,6 +368,8 @@ def sendData(dataPkt, dst, myID):
         #send lock
         sem.acquire()
         try:
+            print("Split functon sending to dst: {}".format(dst))
+            print("Having IP: {}".format(commonFunctions.convertID(dst)))
             my_socket = socket(AF_INET, SOCK_DGRAM)
             my_socket.sendto(dataPkt, (commonFunctions.convertID(dst), 8888))
             my_socket.close()
@@ -395,8 +388,6 @@ def sendData(dataPkt, dst, myID):
             my_socket.bind(('0.0.0.0', 8888))
             data, addr = my_socket.recvfrom(1024)
             recHelloSynch.release()
-            print("Data:")
-            print(data)
             if(decodePktType(data) == 8):
                 print("Got data ACK")
                 receivedACK = True
