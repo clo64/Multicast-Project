@@ -71,7 +71,7 @@ def sendLinkState(myID, nodeGraph):
         time.sleep(1)
         #continuously call the function in thread 
     sem.release()
-    threading.Timer(random.randint(1, 25), sendLinkState, [myID, nodeGraph]).start()
+    threading.Timer(random.randint(1, 35), sendLinkState, [myID, nodeGraph]).start()
 
 def forwardLinkState(ipAddresses, linkState):
     """
@@ -181,7 +181,7 @@ def receiveRouterHello(myID, nodeGraph):
     
 
 def read_hello(pkt):
-	"""
+    """
     Analyzes hello packets
     """
     header = pkt[0:36]
@@ -407,7 +407,7 @@ def sendData(dataPkt, dst, myID):
         try:
             my_socket = socket(AF_INET, SOCK_DGRAM)
             my_socket.settimeout(4)
-            my_socket.bind(('0.0.0.0', 8888))
+            my_socket.bind(('0.0.0.0', 8889))
             data, addr = my_socket.recvfrom(1024)
             recHelloSynch.release()
             if(decodePktType(data) == 8):
@@ -426,11 +426,8 @@ def sendDataACK(dstIP):
     pktType = 0x08
     seq = 0x01
     dataACK = struct.pack('BBB', pktType, seq, 0)
-    print("Before Sem Acquire")
-    
-    print("After sem Acquire")
     my_socket = socket(AF_INET, SOCK_DGRAM)
-    my_socket.sendto(dataACK, (dstIP, 8888))
+    my_socket.sendto(dataACK, (dstIP, 8889))
     my_socket.close()
 
    
