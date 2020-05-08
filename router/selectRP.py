@@ -60,8 +60,6 @@ def selectRP(k,n,myID,srcID):
     #Create array to store names of all routing tables
     contents = []
     #Open folder containing all routing tables
-    #PLAN ON MOVING ROUTING TABLES???
-    #routingTablePath = 'C:\\Users\\game1\\OneDrive\\Rutgers\\Com Net 2\\Final Project\\'
     routingTablePath = os.getcwd()
     json_pattern = os.path.join(routingTablePath, '*.json')
     file_list = glob.glob(json_pattern)
@@ -82,10 +80,6 @@ def selectRP(k,n,myID,srcID):
             #print(data["destination"][node]["cost"])
             if node in dest:
                 destCost.append(data['destination'][node]['cost'])
-            #print(dest["name"])
-            #print(dest["path"])
-            #print(dest["cost"])
-            #destCost.append(dest["cost"])
 
         #Get Filename
         #Which is also router ID

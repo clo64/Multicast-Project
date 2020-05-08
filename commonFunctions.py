@@ -14,7 +14,6 @@ def createDataPacket(pktType, seq, src, ndest, rdest, dest1, dest2, dest3, data)
     """
     Create data packet
     """
-    #pktFormat = "BiiiBBBBB"
     pktFormat = "BBBBBBBBB"
     dataPkt = struct.pack(pktFormat, pktType, seq, src, len(data), int(ndest), int(rdest), int(dest1), int(dest2), int(dest3))+data
     return dataPkt
@@ -31,7 +30,6 @@ def decodeDataPkt(pkt):
     Returns:
         seq, src, length, ndest, rdest, dest1, dest2, dest3 -- Returns all unpacked data except pktType
     """
-    #pktFormat = "BiiiBBBBB"
     pktFormat = "BBBBBBBBB"
     pktSize = struct.calcsize(pktFormat)
     pktHeader = pkt[:pktSize]
@@ -42,8 +40,8 @@ def decodeDataPkt(pkt):
     return seq, src, ndest, rdest, dest1, dest2, dest3, data
 
 def getNextHop(myID, destID):
-    print("myID: {} destID: {}".format(myID,destID))
+    #print("myID: {} destID: {}".format(myID,destID))
     with open(str(myID) + '.json', 'r') as f:
         routingTable = json.load(f)
-    print("Next hop is {}".format(routingTable['destination'][str(destID)]['path'][0]))
+    #print("Next hop is {}".format(routingTable['destination'][str(destID)]['path'][0]))
     return routingTable['destination'][str(destID)]['path'][0]

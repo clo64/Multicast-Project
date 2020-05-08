@@ -67,7 +67,7 @@ def sendHelloPacket(my_addr, pkt, dst, myLink, myID):
             if (pktType == 4):
                 print("Hello ACK Received")
                 print("Network joined")
-                #take returned address, turn it into a code, append it to our linkstate
+                #Take returned address, turn it into a code, append it to our linkstate
                 #this is a janky solution... but it works in this implimentation, so we leave it
                 rID = addr[0][10:13]
                 connectedDevice.append(rID)
@@ -117,7 +117,7 @@ def broadcastLinkState(myID, broadcastIP, myLink):
     """
     #create the link state packet
     pktType = 2
-    length = 1
+    #length = 1
     src = int(myID)
     data = json.dumps(myLink)
     data = bytes(data).encode('utf-8')
@@ -157,7 +157,6 @@ def sendData(dataPkt, dst, myID):
             my_socket = socket(AF_INET, SOCK_DGRAM)
             print("sending data: {} to IP: {}".format(dataPkt, str(commonFunctions.convertID(dst))))
             my_socket.sendto(dataPkt, (str(commonFunctions.convertID(dst)), 8888))
-            #my_socket.sendto(dataPkt, ('192.168.1.201', 8888))
             print("closing socket")
             my_socket.close()
             print("Sent Data Packet")
