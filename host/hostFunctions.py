@@ -142,7 +142,7 @@ def broadcastLinkState(myID, broadcastIP, myLink):
     threading.Timer(random.randint(1, 25), broadcastLinkState, [myID, broadcastIP, myLink]).start()
 
 def sendData(dataPkt, dst, myID):
-     """
+    """
     Function exclusively for sending data packets. Causes a blocking situation where
     the host only job becomes to send data packets and wait for ack.
     """

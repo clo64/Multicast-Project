@@ -149,8 +149,8 @@ if __name__ == "__main__":
 
         if(packetType == 7):
             print("Recveied Data Packet")
-            print("Sending dataACK")
-            print(addr)
+            #print("Sending dataACK")
+            #print(addr)
             routerFunctions.sendDataACK(addr[0])
             #send ACK here
             seq, src, ndest, rdest, dest1, dest2, dest3, data = commonFunctions.decodeDataPkt(receivedPkt)

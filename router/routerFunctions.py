@@ -181,7 +181,7 @@ def receiveRouterHello(myID, nodeGraph):
     
 
 def read_hello(pkt):
-	"""
+    """
     Analyzes hello packets
     """
     header = pkt[0:36]
@@ -453,8 +453,8 @@ def runDijkstra(nodeGraph, myID):
     for key in nodeGraph.keys():
         try:
             tempPath = dijkstra.shortestPath(graphnew, str(myID), key)[1:]
-        except KeyError:
-            print("KeyError on Key: {}".format(KeyError))
+        except KeyError as e:
+            print("KeyError on Key: {}: Graph not complete, moving on".format(e))
             break
         tempEntry = {key: {
                     "path": tempPath,
