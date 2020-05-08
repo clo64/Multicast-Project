@@ -61,16 +61,6 @@ def sendLinkState(myID, nodeGraph):
 
     ipAddresses = getIpFromRoute()
     length = len(ipAddresses)
-    """
-    try:
-        with open(str(myID) + '.json') as f:
-            routeTable = json.load(f)
-            # print(routeTable)
-
-    except:
-        print("No routing table")
-        return
-    """
 
     linkStatePacket = createLinkStatePacket(SEQCOUNT, nodeGraph, myID)
     sem.acquire()
@@ -84,12 +74,14 @@ def sendLinkState(myID, nodeGraph):
     threading.Timer(random.randint(1, 25), sendLinkState, [myID, nodeGraph]).start()
 
 def forwardLinkState(ipAddresses, linkState):
-    #unreliable forward on all ports except the one link state received on
+    """
+    Function forwards inbound link state packets on all ports except the port
+    the packet entered on.
+    """
     length = len(ipAddresses)
     sem.acquire()
     try:
-        for i in range(length):
-            
+        for i in range(length):  
             my_socket = socket(AF_INET, SOCK_DGRAM)
             my_socket.sendto(linkState, (ipAddresses[i], 8888))
             my_socket.close()
@@ -100,8 +92,9 @@ def forwardLinkState(ipAddresses, linkState):
         sem.release()
 
 def receive_packet(my_addr, port_num):
-    #causing error if socket is already bound
-    #trying a while True loop to eliminate error
+    """
+    General function for receiving packets
+    """
     recHelloSynch.acquire()
     while True:
         try:
@@ -120,7 +113,12 @@ def receive_packet(my_addr, port_num):
     return data, addr
 
 def sendRouterHello(myID, routerHelloPacket, ipAddresses):
+    """
+    Function runs specifically for the purpose of sending hello
+    during the router bootstrap process
+    """
     length = len(ipAddresses)
+
     try:
         for i in range(length):
 
@@ -128,25 +126,30 @@ def sendRouterHello(myID, routerHelloPacket, ipAddresses):
             my_socket.sendto(routerHelloPacket, (ipAddresses[i], 8888))
             my_socket.close()
             print("Sent router hello to: " + ipAddresses[i])
-
             time.sleep(1)
+
     except:
         print("Send error, trying again")
 
 def receiveRouterHello(myID, nodeGraph):
+    """
+    Function to receive router hello response during bootstrap phase
+    """
     helloACKpkt = struct.pack('BBB', 0x04, 0x01, myID)
     nodeGraphArray = nodeGraph[str(myID)]
 
     recHelloSynch.acquire()
+
     my_socket = socket(AF_INET, SOCK_DGRAM)   
     my_socket.settimeout(4)
     my_socket.bind((commonFunctions.convertID(myID), 8888))
-    #Hello ACK type set as 4, listening to hear this value
 
     try:
+
         print("Listening for Hello ACK")
         data, addr = my_socket.recvfrom(1024)
         pktType = decodePktType(data)
+
         recHelloSynch.release()
 
         if (pktType == 4): #Hello ACK
@@ -163,17 +166,24 @@ def receiveRouterHello(myID, nodeGraph):
             my_socket.sendto(helloACKpkt, (commonFunctions.convertID(srcVal), 8888))
             my_socket.close()
             print("Got a hello message!")
+
             return 0, nodeGraph, None
+
     except:
+
         recHelloSynch.release()
+
         return 0, nodeGraph, None
 
     recHelloSynch.release()
+
     return 0, nodeGraph, None
     
 
 def read_hello(pkt):
-	#Change the bytes to account for network encapsulations
+	"""
+    Analyzes hello packets
+    """
     header = pkt[0:36]
     #pktFormat = "BLBBL"
     #pktSize = struct.calcsize(pktFormat)
@@ -242,19 +252,26 @@ def decodeLinkStatePkt(pkt):
     return seq, length, src, data
 
 def updateGraph(seq, src, linkStateSeqNumber, data, nodeGraph):
-    #if the sequence number of the received link state packet is > than the old one
+    """
+    if the sequence number of the received link state packet is > than the old one
     #update linkStateSeqNumber, and add, or update nodeGraph to reflect new key data
-    #JSON serialize the data into dict first...
+    JSON serialize the data into dict first...
+    """
     linkStateData = json.loads(data)
+
     if (str(src) in nodeGraph) and (seq > int(linkStateSeqNumber[str(src)])):
         nodeGraph.update(linkStateData)
         print("Number of devices in graph: {}".format(len(nodeGraph)))
+
         return nodeGraph
+
     else:
+
         newKeyPair = {str(src): seq}
         linkStateSeqNumber.update(newKeyPair)
         nodeGraph.update(linkStateData)
         print("Number of devices in graph: {}".format(len(nodeGraph)))
+
         return nodeGraph
 
 def writeHostJsonFile(helloSrc, myID):
@@ -281,7 +298,9 @@ def writeHostJsonFile(helloSrc, myID):
         json.dump(routingTable, f, indent=3)
 
 def addHostToGraph(helloSrc, myID, nodeGraph):
-    #extract array myID's array from nodeGraph
+    """
+    extract array myID's array from nodeGraph
+    """
     connectedDevices = nodeGraph[str(myID)]
     if str(helloSrc) in connectedDevices:
         return 0
@@ -338,7 +357,9 @@ def checkForRoutingTable(myID):
         return 0
 
 def createFirstRoutingTable(myID):
-    
+    """
+    Function should be removed in future revision
+    """
     localHost = {"destination": {
                     str(myID): {
                         "path": [ myID ],
@@ -349,18 +370,19 @@ def createFirstRoutingTable(myID):
         json.dump(localHost, f, indent=3)
 
 def getPath(myID, destID):
-    
+    """
+    Open .json file for specific node
+    """
     with open(str(myID) + '.json', 'r') as f:
         routingTable = json.load(f)
     
     return routingTable['destination'][str(destID)]['path']
 
-"""
-Function to test for sending data and waiting for an ACK
-Function will not return until it gets an ACK
-"""
-
 def sendData(dataPkt, dst, myID):
+    """
+    Function exclusively for sending data packets. Causes a blocking situation where
+    the router's only job becomes to send data packets and wait for ack.
+    """
     receivedACK = False
     #want to send packet and wait for response, if not in whatever time,
     #we send again...
@@ -398,6 +420,9 @@ def sendData(dataPkt, dst, myID):
             recHelloSynch.release()
 
 def sendDataACK(dstIP):
+    """
+    
+    """
     pktType = 0x08
     seq = 0x01
     dataACK = struct.pack('BBB', pktType, seq, 0)
@@ -412,8 +437,10 @@ def sendDataACK(dstIP):
     print("Data ACK sent")
     
 def runDijkstra(nodeGraph, myID):
-    #Convert our graph implementation to one
-    #usable by the dijkstra algorithym
+    """
+    Convert our graph implementation to one
+    usable by the dijkstra algorithym
+    """
     graphnew = {}
     for key in nodeGraph.keys():
         graphnew.update({key:{}})

@@ -23,6 +23,9 @@ def createHelloPacket(pkttype, seq, src):
     return hello
 
 def sendHelloPacket(my_addr, pkt, dst, myLink, myID):
+    """
+    Function used on device bootup for discovering neighboring router
+    """
     helloAckFlag = False
     #extract the array of connected devices
     connectedDevice = myLink[str(myID)]
@@ -54,6 +57,7 @@ def sendHelloPacket(my_addr, pkt, dst, myLink, myID):
         my_socket.bind((my_addr, 8888))
         #Hello ACK type set as 4, listening to hear this value
         try:
+
             print("Listening for Hello ACK")
             data, addr = my_socket.recvfrom(1024)
             pktType = decodePktType(data)
@@ -70,9 +74,12 @@ def sendHelloPacket(my_addr, pkt, dst, myLink, myID):
                 graphUpdate = {str(myID): connectedDevice}
                 myLink.update(graphUpdate)
                 helloAckFlag = True
+
         except:
+
             recSem.release()
             continue
+
     return data, addr, myLink
 
 def send_packet(pkt, dst_addr):
@@ -105,7 +112,9 @@ def decodePktType(pkt):
     return pkttype[0] 
 
 def broadcastLinkState(myID, broadcastIP, myLink):
-
+    """
+    Host send information about which router it is arrached to
+    """
     #create the link state packet
     pktType = 2
     length = 1
@@ -114,19 +123,29 @@ def broadcastLinkState(myID, broadcastIP, myLink):
     data = bytes(data).encode('utf-8')
 
     pkt = struct.pack('BiiB', pktType, 1, len(data), src)+data
+
     try:
+
         sendSem.acquire()
+
         my_socket = socket(AF_INET, SOCK_DGRAM)
         my_socket.setsockopt(SOL_SOCKET, SO_BROADCAST, 1) 
         my_socket.sendto(pkt, ('192.168.1.255', 8888))
         my_socket.close()
+
         sendSem.release()
+
     except:
+
         print("Send error, trying again")
 
     threading.Timer(random.randint(1, 25), broadcastLinkState, [myID, broadcastIP, myLink]).start()
 
 def sendData(dataPkt, dst, myID):
+     """
+    Function exclusively for sending data packets. Causes a blocking situation where
+    the host only job becomes to send data packets and wait for ack.
+    """
     receivedACK = False
     #want to send packet and wait for response, if not in whatever time,
     #we send again...
@@ -157,8 +176,6 @@ def sendData(dataPkt, dst, myID):
             my_socket.bind(('0.0.0.0', 8888))
             data, addr = my_socket.recvfrom(1024)
             recSem.release()
-            print("Data:")
-            print(data)
             if(decodePktType(data) == 8):
                 print("Got data ACK")
                 receivedACK = True
