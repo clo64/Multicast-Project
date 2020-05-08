@@ -123,6 +123,7 @@ if __name__ == "__main__":
             print("Recveied Data Packet")
             #print("Sending dataACK")
             #print(addr)
+            time.sleep(1)
             routerFunctions.sendDataACK(addr[0])
             #decode packet
             seq, recID, ndest, rdest, dest1, dest2, dest3, data = commonFunctions.decodeDataPkt(receivedPkt)

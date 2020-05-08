@@ -57,6 +57,7 @@ if __name__ == "__main__":
         if(packetType == 7):
             seq, src, ndest, rdest, dest1, dest2, dest3, data = commonFunctions.decodeDataPkt(receivedPkt)
             print(data)
+            time.sleep(1)
             hostFunctions.sendDataACK(addr[0])
 
 
